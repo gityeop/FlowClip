@@ -51,11 +51,23 @@ struct GeneralSettingsPane: View {
           .help(Text("PinTooltip", tableName: "GeneralSettings"))
       }
       Settings.Section(
-        bottomDivider: true,
         label: { Text("Delete", tableName: "GeneralSettings") }
       ) {
         KeyboardShortcuts.Recorder(for: .delete)
           .help(Text("DeleteTooltip", tableName: "GeneralSettings"))
+      }
+
+      Settings.Section(
+        label: { Text("Open Queue:", tableName: "GeneralSettings") }
+      ) {
+        KeyboardShortcuts.Recorder(for: .queue)
+      }
+
+      Settings.Section(
+        bottomDivider: true,
+        label: { Text("Clear Queue:", tableName: "GeneralSettings") }
+      ) {
+        KeyboardShortcuts.Recorder(for: .queueClear)
       }
 
       Settings.Section(
