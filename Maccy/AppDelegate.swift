@@ -25,9 +25,17 @@ class QueueClipboard {
   func nextToPaste() -> HistoryItem? {
     if let index = items.firstIndex(where: { !$0.isPasted }) {
       items[index].isPasted = true
+
+      // If this was the last item and cycle is on, reset immediately for visual feedback
+      if Defaults[.queueCyclePaste] && items.allSatisfy({ $0.isPasted }) {
+        for i in 0..<items.count {
+          items[i].isPasted = false
+        }
+      }
+
       return items[index].item
     } else if Defaults[.queueCyclePaste] && !items.isEmpty {
-      // Reset all items if cycle is enabled
+      // This case handles pasting when they were already all dimmed
       for i in 0..<items.count {
         items[i].isPasted = false
       }
@@ -35,6 +43,10 @@ class QueueClipboard {
       return items[0].item
     }
     return nil
+  }
+
+  func remove(id: UUID) {
+    items.removeAll(where: { $0.id == id })
   }
 
   func clear() {
@@ -75,6 +87,10 @@ class QueueClipboardManager {
                 Clipboard.shared.copy(item)
                 Clipboard.shared.paste()
               }
+              return nil
+            } else {
+              // Queue is active but exhausted (and cycle is off)
+              // Block the original Command + V to prevent pasting the last item from system clipboard
               return nil
             }
           }
@@ -173,6 +189,7 @@ struct QueueContentView: View {
 
 struct QueueItemView: View {
   let queueItem: QueueClipboard.QueueItem
+  @State private var isHovering = false
 
   var body: some View {
     HStack(alignment: .top, spacing: 10) {
@@ -189,7 +206,20 @@ struct QueueItemView: View {
           .lineLimit(2)
           .multilineTextAlignment(.leading)
       }
+
       Spacer()
+
+      if isHovering {
+        Button(action: {
+          QueueClipboard.shared.remove(id: queueItem.id)
+        }) {
+          Image(systemName: "xmark.circle.fill")
+            .foregroundColor(.secondary)
+            .font(.system(size: 14))
+        }
+        .buttonStyle(.plain)
+        .transition(.opacity)
+      }
     }
     .padding(.horizontal, 12)
     .padding(.vertical, 10)
@@ -197,6 +227,11 @@ struct QueueItemView: View {
     .background(queueItem.isPasted ? Color.primary.opacity(0.02) : Color.primary.opacity(0.05))
     .cornerRadius(8)
     .opacity(queueItem.isPasted ? 0.4 : 1.0)
+    .onHover { hovering in
+      withAnimation(.easeInOut(duration: 0.1)) {
+        isHovering = hovering
+      }
+    }
   }
 }
 
