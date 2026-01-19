@@ -127,6 +127,7 @@ class QueueClipboardManager {
   }
 }
 
+
 struct NoIndicatorsScrollView<Content: View>: NSViewRepresentable {
   let content: Content
 
@@ -242,24 +243,46 @@ struct QueueItemView: View {
   @State private var isHovering = false
 
   var body: some View {
-    HStack(alignment: .top, spacing: 10) {
-      VStack(alignment: .leading, spacing: 2) {
-        if let image = queueItem.item.image {
-          Image(nsImage: image)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(maxWidth: 80, maxHeight: 45)
-            .cornerRadius(4)
+    ZStack(alignment: .trailing) {
+      Button(action: {
+        // 1. Ensure focus goes back to the previous app
+        NSApp.deactivate()
+        
+        // 2. Prepare for internal paste bypass
+        QueueClipboardManager.shared.isInternalPaste = true
+        
+        // 3. Copy the item
+        Clipboard.shared.copy(queueItem.item)
+        
+        // 4. Paste with a slight delay to allow focus switch
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+          Clipboard.shared.paste()
         }
-        Text(queueItem.item.title)
-          .font(.system(size: 12, weight: .medium))
-          .lineLimit(2)
-          .multilineTextAlignment(.leading)
+      }) {
+        HStack(alignment: .top, spacing: 10) {
+          VStack(alignment: .leading, spacing: 2) {
+            if let image = queueItem.item.image {
+              Image(nsImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: 80, maxHeight: 45)
+                .cornerRadius(4)
+            }
+            Text(queueItem.item.title)
+              .font(.system(size: 12, weight: .medium))
+              .lineLimit(2)
+              .multilineTextAlignment(.leading)
+          }
+          Spacer()
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(isHovering ? Color.primary.opacity(0.08) : Color.clear)
+        .contentShape(Rectangle())
       }
-
-      Spacer()
-    }
-    .overlay(alignment: .trailing) {
+      .buttonStyle(.plain)
+      
       if isHovering {
         Button(action: {
           QueueClipboard.shared.remove(id: queueItem.id)
@@ -270,21 +293,8 @@ struct QueueItemView: View {
         }
         .buttonStyle(.plain)
         .transition(.opacity)
-        .padding(.trailing, 2)
+        .padding(.trailing, 10)
       }
-    }
-    .padding(.horizontal, 10)
-    .padding(.vertical, 8)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .background(isHovering ? Color.primary.opacity(0.08) : Color.clear)
-    .contentShape(Rectangle())
-    .onTapGesture {
-      QueueClipboardManager.shared.isInternalPaste = true
-      // Don't close or hide, just copy and paste. 
-      // Since the window is .nonactivatingPanel and might not be Key, 
-      // paste should go to the previous app.
-      Clipboard.shared.copy(queueItem.item)
-      Clipboard.shared.paste()
     }
     .opacity(queueItem.isPasted ? 0.3 : 1.0)
     .onHover { hovering in
