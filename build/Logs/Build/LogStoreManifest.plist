@@ -6,7 +6,7 @@
 	<integer>12</integer>
 	<key>logs</key>
 	<dict>
-		<key>083E9011-6811-42F5-9F6C-4B982DA13E44</key>
+		<key>8AD639FD-59C9-4C4A-B15A-FE77F1C70201</key>
 		<dict>
 			<key>className</key>
 			<string>IDECommandLineBuildLog</string>
@@ -15,13 +15,13 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
 			<key>fileName</key>
-			<string>083E9011-6811-42F5-9F6C-4B982DA13E44.xcactivitylog</string>
+			<string>8AD639FD-59C9-4C4A-B15A-FE77F1C70201.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
 			<dict>
 				<key>highLevelStatus</key>
-				<string>S</string>
+				<string>W</string>
 				<key>totalNumberOfAnalyzerIssues</key>
 				<integer>0</integer>
 				<key>totalNumberOfErrors</key>
@@ -29,7 +29,7 @@
 				<key>totalNumberOfTestFailures</key>
 				<integer>0</integer>
 				<key>totalNumberOfWarnings</key>
-				<integer>0</integer>
+				<integer>3</integer>
 			</dict>
 			<key>schemeIdentifier-containerName</key>
 			<string>Maccy project</string>
@@ -38,15 +38,15 @@
 			<key>schemeIdentifier-sharedScheme</key>
 			<integer>1</integer>
 			<key>signature</key>
-			<string>Testing project Maccy with scheme Maccy</string>
+			<string>Building project Maccy with scheme Maccy and configuration Debug</string>
 			<key>timeStartedRecording</key>
-			<real>790512754.29346204</real>
+			<real>790547706.76150501</real>
 			<key>timeStoppedRecording</key>
-			<real>790512759.42608297</real>
+			<real>790547710.32591903</real>
 			<key>title</key>
-			<string>Testing project Maccy with scheme Maccy</string>
+			<string>Building project Maccy with scheme Maccy and configuration Debug</string>
 			<key>uniqueIdentifier</key>
-			<string>083E9011-6811-42F5-9F6C-4B982DA13E44</string>
+			<string>8AD639FD-59C9-4C4A-B15A-FE77F1C70201</string>
 		</dict>
 	</dict>
 </dict>

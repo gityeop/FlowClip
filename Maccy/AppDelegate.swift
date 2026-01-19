@@ -432,6 +432,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     KeyboardShortcuts.onKeyDown(for: .queue) { [weak self] in
       self?.toggleQueue()
     }
+    
+    KeyboardShortcuts.onKeyDown(for: .queueClear) {
+      QueueClipboard.shared.clear()
+    }
   }
 
   private func toggleQueue() {
