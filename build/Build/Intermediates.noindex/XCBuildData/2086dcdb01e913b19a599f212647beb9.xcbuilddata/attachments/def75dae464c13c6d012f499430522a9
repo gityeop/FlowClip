@@ -1,0 +1,4 @@
+module SwiftHEXColors {
+header "SwiftHEXColors-Swift.h"
+export *
+}

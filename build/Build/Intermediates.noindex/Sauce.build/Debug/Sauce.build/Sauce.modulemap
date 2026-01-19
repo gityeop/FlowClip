@@ -1,0 +1,4 @@
+module Sauce {
+header "Sauce-Swift.h"
+export *
+}

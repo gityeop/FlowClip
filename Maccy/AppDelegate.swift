@@ -2,9 +2,200 @@ import Defaults
 import KeyboardShortcuts
 import Sparkle
 import SwiftUI
+import Sauce
+import Observation
+
+@Observable
+class QueueClipboard {
+  static let shared = QueueClipboard()
+
+  struct QueueItem: Identifiable, Hashable {
+    let id = UUID()
+    let item: HistoryItem
+    var isPasted: Bool = false
+  }
+
+  private(set) var items: [QueueItem] = []
+  var isModeActive: Bool = false
+
+  func add(_ item: HistoryItem) {
+    items.append(QueueItem(item: item))
+  }
+
+  func nextToPaste() -> HistoryItem? {
+    if let index = items.firstIndex(where: { !$0.isPasted }) {
+      items[index].isPasted = true
+      return items[index].item
+    } else if Defaults[.queueCyclePaste] && !items.isEmpty {
+      // Reset all items if cycle is enabled
+      for i in 0..<items.count {
+        items[i].isPasted = false
+      }
+      items[0].isPasted = true
+      return items[0].item
+    }
+    return nil
+  }
+
+  func clear() {
+    items.removeAll()
+  }
+}
+
+class QueueClipboardManager {
+  static let shared = QueueClipboardManager()
+  private var eventTap: CFMachPort?
+  private var runLoopSource: CFRunLoopSource?
+  private var isInternalPaste = false
+
+  func startMonitoring() {
+    stopMonitoring()
+    let eventMask = (1 << CGEventType.keyDown.rawValue)
+    eventTap = CGEvent.tapCreate(
+      tap: .cgSessionEventTap,
+      place: .headInsertEventTap,
+      options: .defaultTap,
+      eventsOfInterest: CGEventMask(eventMask),
+      callback: { (proxy, type, event, refcon) -> Unmanaged<CGEvent>? in
+        if type == .keyDown {
+          let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+          let flags = event.flags
+          let isV = keyCode == Sauce.shared.keyCode(for: .v)
+          let isCommand = flags.contains(.maskCommand)
+
+          if isV && isCommand {
+            if QueueClipboardManager.shared.isInternalPaste {
+              QueueClipboardManager.shared.isInternalPaste = false
+              return Unmanaged.passRetained(event)
+            }
+
+            if let item = QueueClipboard.shared.nextToPaste() {
+              QueueClipboardManager.shared.isInternalPaste = true
+              DispatchQueue.main.async {
+                Clipboard.shared.copy(item)
+                Clipboard.shared.paste()
+              }
+              return nil
+            }
+          }
+        }
+        return Unmanaged.passRetained(event)
+      },
+      userInfo: nil
+    )
+    if let eventTap = eventTap {
+      runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
+      CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
+      CGEvent.tapEnable(tap: eventTap, enable: true)
+    }
+  }
+
+  func stopMonitoring() {
+    isInternalPaste = false
+    if let eventTap = eventTap { CGEvent.tapEnable(tap: eventTap, enable: false) }
+    if let runLoopSource = runLoopSource { CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes) }
+    eventTap = nil
+    runLoopSource = nil
+  }
+}
+
+struct QueueContentView: View {
+  @State private var queue = QueueClipboard.shared
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      // Header
+      HStack(spacing: 12) {
+        Text("Queue Clipboard")
+          .font(.system(size: 15, weight: .bold))
+
+        Spacer()
+
+        Button("Clear") {
+          queue.clear()
+        }
+        .buttonStyle(.plain)
+        .font(.system(size: 13, weight: .medium))
+        .foregroundColor(.accentColor)
+
+        Button(action: { AppState.shared.appDelegate?.queuePanel.close() }) {
+          Image(systemName: "xmark.circle.fill")
+            .font(.system(size: 16))
+        }
+        .buttonStyle(.plain)
+        .foregroundColor(.secondary)
+      }
+      .padding(.horizontal, 16)
+      .padding(.vertical, 12)
+
+      Divider()
+
+      // List
+      if queue.items.isEmpty {
+        Spacer()
+        Text("Empty Queue")
+          .foregroundColor(.secondary)
+          .font(.system(size: 14))
+          .frame(maxWidth: .infinity, alignment: .center)
+        Spacer()
+      } else {
+        ScrollView {
+          VStack(alignment: .leading, spacing: 4) {
+            ForEach(queue.items) { queueItem in
+              QueueItemView(queueItem: queueItem)
+            }
+          }
+          .padding(8)
+        }
+      }
+    }
+    .frame(width: 300, height: 400)
+    .background(
+      ZStack {
+        if #available(macOS 26.0, *) {
+          GlassEffectView()
+        } else {
+          VisualEffectView()
+        }
+      }
+      .ignoresSafeArea()
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 12))
+  }
+}
+
+struct QueueItemView: View {
+  let queueItem: QueueClipboard.QueueItem
+
+  var body: some View {
+    HStack(alignment: .top, spacing: 10) {
+      VStack(alignment: .leading, spacing: 2) {
+        if let image = queueItem.item.image {
+          Image(nsImage: image)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(maxWidth: 100, maxHeight: 60)
+            .cornerRadius(4)
+        }
+        Text(queueItem.item.title)
+          .font(.system(size: 14, weight: .medium))
+          .lineLimit(2)
+          .multilineTextAlignment(.leading)
+      }
+      Spacer()
+    }
+    .padding(.horizontal, 12)
+    .padding(.vertical, 10)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(queueItem.isPasted ? Color.primary.opacity(0.02) : Color.primary.opacity(0.05))
+    .cornerRadius(8)
+    .opacity(queueItem.isPasted ? 0.4 : 1.0)
+  }
+}
 
 class AppDelegate: NSObject, NSApplicationDelegate {
   var panel: FloatingPanel<ContentView>!
+  var queuePanel: FloatingPanel<QueueContentView>!
 
   @objc
   private lazy var statusItem: NSStatusItem = {
@@ -37,7 +228,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Bridge FloatingPanel via AppDelegate.
     AppState.shared.appDelegate = self
 
-    Clipboard.shared.onNewCopy { History.shared.add($0) }
+    Clipboard.shared.onNewCopy { item in
+      if QueueClipboard.shared.isModeActive {
+        // Ignore items already in Maccy or those we just put for pasting
+        if !item.fromMaccy {
+          QueueClipboard.shared.add(item)
+        }
+      } else {
+        History.shared.add(item)
+      }
+    }
     Clipboard.shared.start()
 
     Task {
@@ -99,6 +299,36 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       onClose: { AppState.shared.popup.reset() }
     ) {
       ContentView()
+    }
+
+    queuePanel = FloatingPanel(
+      contentRect: NSRect(x: 0, y: 0, width: 300, height: 400),
+      identifier: (Bundle.main.bundleIdentifier ?? "org.p0deje.Maccy") + ".queue",
+      onClose: {
+        QueueClipboard.shared.isModeActive = false
+        QueueClipboardManager.shared.stopMonitoring()
+      }
+    ) {
+      QueueContentView()
+    }
+    queuePanel.level = NSWindow.Level.floating // Ensure it's always on top
+    queuePanel.isMovableByWindowBackground = true
+    queuePanel.isMovableExternally = true
+    queuePanel.closeOnResignKey = false // Keep open when focus is lost
+    queuePanel.hidesOnDeactivate = false
+
+    KeyboardShortcuts.onKeyDown(for: .queue) { [weak self] in
+      self?.toggleQueue()
+    }
+  }
+
+  private func toggleQueue() {
+    if queuePanel.isPresented {
+      queuePanel.close()
+    } else {
+      QueueClipboard.shared.isModeActive = true
+      QueueClipboardManager.shared.startMonitoring()
+      queuePanel.open(height: 400, at: PopupPosition.cursor)
     }
   }
 

@@ -6,10 +6,18 @@ import SwiftUI
 class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   var isPresented: Bool = false
   var statusBarButton: NSStatusBarButton?
+  var closeOnResignKey: Bool = true
   let onClose: () -> Void
 
+  var isMovableExternally: Bool = false
+
   override var isMovable: Bool {
-    get { Defaults[.popupPosition] != .statusItem }
+    get {
+      if isMovableExternally {
+        return true
+      }
+      return Defaults[.popupPosition] != .statusItem
+    }
     set {}
   }
 
@@ -121,7 +129,7 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   override func resignKey() {
     super.resignKey()
     // Don't hide if confirmation is shown.
-    if NSApp.alertWindow == nil {
+    if closeOnResignKey && NSApp.alertWindow == nil {
       close()
     }
   }
