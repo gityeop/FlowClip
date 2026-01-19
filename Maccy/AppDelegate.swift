@@ -86,11 +86,23 @@ class QueueClipboardManager {
               DispatchQueue.main.async {
                 Clipboard.shared.copy(item)
                 Clipboard.shared.paste()
+
+                // Paste separator if configured
+                let separator = Defaults[.queueSeparator]
+                if let separatorValue = separator.value {
+                  // Small delay to ensure the main item is pasted first
+                  DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    QueueClipboardManager.shared.isInternalPaste = true
+                    Clipboard.shared.copy(separatorValue)
+                    Clipboard.shared.paste()
+                  }
+                }
               }
               return nil
             } else {
               // Queue is active but exhausted (and cycle is off)
-              // Block the original Command + V to prevent pasting the last item from system clipboard
+              // Block the original Command + V and beep
+              NSSound.beep()
               return nil
             }
           }

@@ -1,6 +1,41 @@
 import AppKit
 import Defaults
 
+enum QueueSeparator: String, CaseIterable, Identifiable, CustomStringConvertible, Defaults.Serializable {
+  case none
+  case space
+  case newline
+  case comma
+
+  var id: Self { self }
+
+  var description: String {
+    switch self {
+    case .none:
+      return NSLocalizedString("None", tableName: "GeneralSettings", comment: "")
+    case .space:
+      return NSLocalizedString("Space", tableName: "GeneralSettings", comment: "")
+    case .newline:
+      return NSLocalizedString("Newline", tableName: "GeneralSettings", comment: "")
+    case .comma:
+      return NSLocalizedString("Comma", tableName: "GeneralSettings", comment: "")
+    }
+  }
+
+  var value: String? {
+    switch self {
+    case .none:
+      return nil
+    case .space:
+      return " "
+    case .newline:
+      return "\n"
+    case .comma:
+      return ","
+    }
+  }
+}
+
 struct StorageType {
   static let files = StorageType(types: [.fileURL])
   static let images = StorageType(types: [.png, .tiff])
@@ -43,6 +78,7 @@ extension Defaults.Keys {
   static let popupPosition = Key<PopupPosition>("popupPosition", default: .cursor)
   static let popupScreen = Key<Int>("popupScreen", default: 0)
   static let queueCyclePaste = Key<Bool>("queueCyclePaste", default: false)
+  static let queueSeparator = Key<QueueSeparator>("queueSeparator", default: .none)
   static let previewDelay = Key<Int>("previewDelay", default: 1500)
   static let removeFormattingByDefault = Key<Bool>("removeFormattingByDefault", default: false)
   static let searchMode = Key<Search.Mode>("searchMode", default: .exact)

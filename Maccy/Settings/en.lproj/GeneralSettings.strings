@@ -18,3 +18,8 @@
 "Regex" = "Regular expressions";
 "Mixed" = "Mixed";
 "NotificationsAndSounds" = "Notifications and sounds 􀱁";
+"QueuePasteSeparator" = "Queue paste separator:";
+"None" = "None";
+"Space" = "Space";
+"Newline" = "Newline";
+"Comma" = "Comma";

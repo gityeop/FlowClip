@@ -6,12 +6,12 @@
     "object" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/AdvancedSettingsPane.o",
     "swift-dependencies" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/AdvancedSettingsPane.swiftdeps"
   },
-  "/Users/imsang-yeob/Maccy/Maccy/Settings/GeneralSettingsPane.swift" : {
-    "const-values" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/GeneralSettingsPane.swiftconstvalues",
-    "dependencies" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/GeneralSettingsPane.d",
-    "diagnostics" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/GeneralSettingsPane.dia",
-    "object" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/GeneralSettingsPane.o",
-    "swift-dependencies" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/GeneralSettingsPane.swiftdeps"
+  "/Users/imsang-yeob/Maccy/Maccy/Views/HistoryItemView.swift" : {
+    "const-values" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/HistoryItemView.swiftconstvalues",
+    "dependencies" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/HistoryItemView.d",
+    "diagnostics" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/HistoryItemView.dia",
+    "object" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/HistoryItemView.o",
+    "swift-dependencies" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/HistoryItemView.swiftdeps"
   },
   "/Users/imsang-yeob/Maccy/Maccy/Views/KeyHandlingView.swift" : {
     "const-values" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/KeyHandlingView.swiftconstvalues",

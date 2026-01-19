@@ -18,3 +18,8 @@
 "Regex" = "정규식";
 "Mixed" = "혼합";
 "NotificationsAndSounds" = "알림 및 소리 􀱁";
+"QueuePasteSeparator" = "대기열 붙여넣기 구분자:";
+"None" = "없음";
+"Space" = "스페이스바";
+"Newline" = "줄바꿈";
+"Comma" = "쉼표";

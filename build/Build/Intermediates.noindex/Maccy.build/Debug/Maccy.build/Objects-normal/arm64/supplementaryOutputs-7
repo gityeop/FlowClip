@@ -13,11 +13,11 @@
     "object" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/StorageSettingsPane.o",
     "swift-dependencies" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/StorageSettingsPane.swiftdeps"
   },
-  "/Users/imsang-yeob/Maccy/Maccy/Views/HeaderView.swift" : {
-    "const-values" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/HeaderView.swiftconstvalues",
-    "dependencies" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/HeaderView.d",
-    "diagnostics" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/HeaderView.dia",
-    "object" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/HeaderView.o",
-    "swift-dependencies" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/HeaderView.swiftdeps"
+  "/Users/imsang-yeob/Maccy/Maccy/Views/ListItemView.swift" : {
+    "const-values" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/ListItemView.swiftconstvalues",
+    "dependencies" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/ListItemView.d",
+    "diagnostics" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/ListItemView.dia",
+    "object" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/ListItemView.o",
+    "swift-dependencies" : "/Users/imsang-yeob/Maccy/build/Build/Intermediates.noindex/Maccy.build/Debug/Maccy.build/Objects-normal/arm64/ListItemView.swiftdeps"
   }
 }

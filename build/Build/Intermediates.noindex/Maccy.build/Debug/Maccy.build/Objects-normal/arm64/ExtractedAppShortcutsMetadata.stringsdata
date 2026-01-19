@@ -1,5 +1,4 @@
 {
-  "version" : 1,
   "tables" : {
     "Localizable" : [
       {
@@ -13,5 +12,6 @@
       }
     ]
   },
+  "version" : 1,
   "source" : "ExtractedAppShortcutsMetadata"
 }

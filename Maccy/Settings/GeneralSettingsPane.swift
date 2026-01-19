@@ -10,6 +10,7 @@ struct GeneralSettingsPane: View {
   )
 
   @Default(.searchMode) private var searchMode
+  @Default(.queueSeparator) private var queueSeparator
 
   @State private var copyModifier = HistoryItemAction.copy.modifierFlags.description
   @State private var pasteModifier = HistoryItemAction.paste.modifierFlags.description
@@ -93,7 +94,19 @@ struct GeneralSettingsPane: View {
         .fixedSize(horizontal: false, vertical: true)
         .foregroundStyle(.gray)
         .controlSize(.small)
+
+        HStack {
+          Text("QueuePasteSeparator", tableName: "GeneralSettings")
+          Picker("", selection: $queueSeparator) {
+            ForEach(QueueSeparator.allCases) { separator in
+              Text(separator.description)
+            }
+          }
+          .labelsHidden()
+          .frame(width: 150)
+        }
       }
+
 
       Settings.Section(title: "") {
         if let notificationsURL = notificationsURL {
