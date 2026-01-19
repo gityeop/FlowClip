@@ -3,6 +3,12 @@ import SwiftUI
 
 // An NSPanel subclass that implements floating panel traits.
 // https://stackoverflow.com/questions/46023769/how-to-show-a-window-without-stealing-focus-on-macos
+class CustomHostingView<Content: View>: NSHostingView<Content> {
+  override func acceptsFirstMouse(for event: NSEvent?) -> Bool {
+    return true
+  }
+}
+
 class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   var isPresented: Bool = false
   var statusBarButton: NSStatusBarButton?
@@ -36,6 +42,7 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
         backing: .buffered,
         defer: false
     )
+    ignoresMouseEvents = false
 
     self.statusBarButton = statusBarButton
     self.identifier = NSUserInterfaceItemIdentifier(identifier)
@@ -55,11 +62,10 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
     titlebarSeparatorStyle = .none
 
     // Hide all traffic light buttons
-    standardWindowButton(.closeButton)?.isHidden = true
-    standardWindowButton(.miniaturizeButton)?.isHidden = true
     standardWindowButton(.zoomButton)?.isHidden = true
 
-    contentView = NSHostingView(
+
+     contentView = CustomHostingView(
       rootView: view()
         // The safe area is ignored because the title bar still interferes with the geometry
         .ignoresSafeArea()

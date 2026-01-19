@@ -64,6 +64,18 @@ enum PopupPosition: String, CaseIterable, Identifiable, CustomStringConvertible,
 
     var point = NSEvent.mouseLocation
     point.y -= size.height
+    
+    // Clamp to screen
+    if let screen = NSScreen.main {
+      let screenFrame = screen.visibleFrame
+      if point.x + size.width > screenFrame.maxX {
+        point.x = screenFrame.maxX - size.width
+      }
+      if point.y < screenFrame.minY {
+        point.y = screenFrame.minY
+      }
+    }
+    
     return point
   }
 }
