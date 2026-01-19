@@ -226,11 +226,7 @@ struct QueueContentView: View {
     .frame(width: 260, height: 360)
     .background(
       ZStack {
-        if #available(macOS 26.0, *) {
-          GlassEffectView()
-        } else {
-          VisualEffectView()
-        }
+        VisualEffectView()
       }
       .ignoresSafeArea()
     )
