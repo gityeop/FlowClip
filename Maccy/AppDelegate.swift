@@ -137,6 +137,7 @@ struct QueueContentView: View {
       HStack(spacing: 12) {
         Text("Queue Clipboard")
           .font(.system(size: 13, weight: .semibold))
+          .padding(.leading, 4)
 
         Spacer()
 
