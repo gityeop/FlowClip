@@ -136,13 +136,13 @@ struct QueueContentView: View {
       // Header
       HStack(spacing: 12) {
         Text("Queue Clipboard")
-          .font(.system(size: 15, weight: .bold))
+          .font(.system(size: 13, weight: .semibold))
 
         Spacer()
 
         Toggle(isOn: $queueCyclePaste) {
           Text("Cycle")
-            .font(.system(size: 13, weight: .medium))
+            .font(.system(size: 11))
         }
         .toggleStyle(.checkbox)
 
@@ -150,18 +150,18 @@ struct QueueContentView: View {
           queue.clear()
         }
         .buttonStyle(.plain)
-        .font(.system(size: 13, weight: .medium))
+        .font(.system(size: 11))
         .foregroundColor(.accentColor)
 
         Button(action: { AppState.shared.appDelegate?.queuePanel.close() }) {
           Image(systemName: "xmark.circle.fill")
-            .font(.system(size: 16))
+            .font(.system(size: 14))
         }
         .buttonStyle(.plain)
         .foregroundColor(.secondary)
       }
-      .padding(.horizontal, 16)
-      .padding(.vertical, 12)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 10)
 
       Divider()
 
@@ -170,7 +170,7 @@ struct QueueContentView: View {
         Spacer()
         Text("Empty Queue")
           .foregroundColor(.secondary)
-          .font(.system(size: 14))
+          .font(.system(size: 12))
           .frame(maxWidth: .infinity, alignment: .center)
         Spacer()
       } else {
@@ -180,11 +180,11 @@ struct QueueContentView: View {
               QueueItemView(queueItem: queueItem)
             }
           }
-          .padding(8)
+          .padding(6)
         }
       }
     }
-    .frame(width: 300, height: 400)
+    .frame(width: 260, height: 360)
     .background(
       ZStack {
         if #available(macOS 26.0, *) {
@@ -210,11 +210,11 @@ struct QueueItemView: View {
           Image(nsImage: image)
             .resizable()
             .aspectRatio(contentMode: .fit)
-            .frame(maxWidth: 100, maxHeight: 60)
+            .frame(maxWidth: 80, maxHeight: 45)
             .cornerRadius(4)
         }
         Text(queueItem.item.title)
-          .font(.system(size: 14, weight: .medium))
+          .font(.system(size: 12, weight: .medium))
           .lineLimit(2)
           .multilineTextAlignment(.leading)
       }
@@ -227,17 +227,17 @@ struct QueueItemView: View {
         }) {
           Image(systemName: "xmark.circle.fill")
             .foregroundColor(.secondary)
-            .font(.system(size: 14))
+            .font(.system(size: 12))
         }
         .buttonStyle(.plain)
         .transition(.opacity)
       }
     }
-    .padding(.horizontal, 12)
-    .padding(.vertical, 10)
+    .padding(.horizontal, 10)
+    .padding(.vertical, 8)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(queueItem.isPasted ? Color.primary.opacity(0.02) : Color.primary.opacity(0.05))
-    .cornerRadius(8)
+    .cornerRadius(6)
     .opacity(queueItem.isPasted ? 0.4 : 1.0)
     .onHover { hovering in
       withAnimation(.easeInOut(duration: 0.1)) {
@@ -356,7 +356,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     queuePanel = FloatingPanel(
-      contentRect: NSRect(x: 0, y: 0, width: 300, height: 400),
+      contentRect: NSRect(x: 0, y: 0, width: 260, height: 360),
       identifier: (Bundle.main.bundleIdentifier ?? "org.p0deje.Maccy") + ".queue",
       onClose: {
         QueueClipboard.shared.isModeActive = false
@@ -382,7 +382,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     } else {
       QueueClipboard.shared.isModeActive = true
       QueueClipboardManager.shared.startMonitoring()
-      queuePanel.open(height: 400, at: PopupPosition.cursor)
+      queuePanel.open(height: 360, at: PopupPosition.cursor)
     }
   }
 
