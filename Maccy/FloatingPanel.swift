@@ -79,11 +79,13 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
     }
   }
 
-  func open(height: CGFloat, at popupPosition: PopupPosition = Defaults[.popupPosition]) {
+  func open(height: CGFloat, at popupPosition: PopupPosition = Defaults[.popupPosition], makeKey: Bool = true) {
     setContentSize(NSSize(width: frame.width, height: min(height, Defaults[.windowSize].height)))
     setFrameOrigin(popupPosition.origin(size: frame.size, statusBarButton: statusBarButton))
     orderFrontRegardless()
-    makeKey()
+    if makeKey {
+      self.makeKey()
+    }
     isPresented = true
 
     if popupPosition == .statusItem {

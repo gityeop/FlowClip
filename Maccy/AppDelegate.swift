@@ -58,7 +58,7 @@ class QueueClipboardManager {
   static let shared = QueueClipboardManager()
   private var eventTap: CFMachPort?
   private var runLoopSource: CFRunLoopSource?
-  private var isInternalPaste = false
+  fileprivate var isInternalPaste = false
 
   func startMonitoring() {
     stopMonitoring()
@@ -127,6 +127,38 @@ class QueueClipboardManager {
   }
 }
 
+struct NoIndicatorsScrollView<Content: View>: NSViewRepresentable {
+  let content: Content
+
+  init(@ViewBuilder content: () -> Content) {
+    self.content = content()
+  }
+
+  func makeNSView(context: Context) -> NSScrollView {
+    let scrollView = NSScrollView()
+    scrollView.hasVerticalScroller = false
+    scrollView.hasHorizontalScroller = false
+    scrollView.autohidesScrollers = true
+    scrollView.drawsBackground = false
+
+    let hostingView = NSHostingView(rootView: content)
+    hostingView.translatesAutoresizingMaskIntoConstraints = false
+    scrollView.documentView = hostingView
+
+    hostingView.leadingAnchor.constraint(equalTo: scrollView.contentView.leadingAnchor).isActive = true
+    hostingView.trailingAnchor.constraint(equalTo: scrollView.contentView.trailingAnchor).isActive = true
+    hostingView.topAnchor.constraint(equalTo: scrollView.contentView.topAnchor).isActive = true
+
+    return scrollView
+  }
+
+  func updateNSView(_ nsView: NSScrollView, context: Context) {
+    if let hostingView = nsView.documentView as? NSHostingView<Content> {
+      hostingView.rootView = content
+    }
+  }
+}
+
 struct QueueContentView: View {
   @State private var queue = QueueClipboard.shared
   @Default(.queueCyclePaste) private var queueCyclePaste
@@ -175,13 +207,18 @@ struct QueueContentView: View {
           .frame(maxWidth: .infinity, alignment: .center)
         Spacer()
       } else {
-        ScrollView {
-          VStack(alignment: .leading, spacing: 4) {
-            ForEach(queue.items) { queueItem in
+        NoIndicatorsScrollView {
+          VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(queue.items.enumerated()), id: \.element.id) { index, queueItem in
               QueueItemView(queueItem: queueItem)
+              
+              if index < queue.items.count - 1 {
+                Divider()
+                  .padding(.horizontal, 10)
+                  .opacity(0.2)
+              }
             }
           }
-          .padding(6)
         }
       }
     }
@@ -221,25 +258,35 @@ struct QueueItemView: View {
       }
 
       Spacer()
-
+    }
+    .overlay(alignment: .trailing) {
       if isHovering {
         Button(action: {
           QueueClipboard.shared.remove(id: queueItem.id)
         }) {
-          Image(systemName: "xmark.circle.fill")
+          Image(systemName: "xmark")
             .foregroundColor(.secondary)
-            .font(.system(size: 12))
+            .font(.system(size: 9, weight: .bold))
         }
         .buttonStyle(.plain)
         .transition(.opacity)
+        .padding(.trailing, 2)
       }
     }
     .padding(.horizontal, 10)
     .padding(.vertical, 8)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(queueItem.isPasted ? Color.primary.opacity(0.02) : Color.primary.opacity(0.05))
-    .cornerRadius(6)
-    .opacity(queueItem.isPasted ? 0.4 : 1.0)
+    .background(isHovering ? Color.primary.opacity(0.08) : Color.clear)
+    .contentShape(Rectangle())
+    .onTapGesture {
+      QueueClipboardManager.shared.isInternalPaste = true
+      // Don't close or hide, just copy and paste. 
+      // Since the window is .nonactivatingPanel and might not be Key, 
+      // paste should go to the previous app.
+      Clipboard.shared.copy(queueItem.item)
+      Clipboard.shared.paste()
+    }
+    .opacity(queueItem.isPasted ? 0.3 : 1.0)
     .onHover { hovering in
       withAnimation(.easeInOut(duration: 0.1)) {
         isHovering = hovering
@@ -383,7 +430,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     } else {
       QueueClipboard.shared.isModeActive = true
       QueueClipboardManager.shared.startMonitoring()
-      queuePanel.open(height: 360, at: PopupPosition.cursor)
+      queuePanel.open(height: 360, at: PopupPosition.cursor, makeKey: false)
     }
   }
 
