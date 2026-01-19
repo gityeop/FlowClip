@@ -1,6 +1,5 @@
 {
   "version" : 1,
-  "source" : "ExtractedAppShortcutsMetadata",
   "tables" : {
     "Localizable" : [
       {
@@ -13,5 +12,6 @@
         "key" : "Select ${number} Item in Clipboard History"
       }
     ]
-  }
+  },
+  "source" : "ExtractedAppShortcutsMetadata"
 }

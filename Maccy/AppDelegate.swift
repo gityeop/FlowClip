@@ -101,6 +101,7 @@ class QueueClipboardManager {
 
 struct QueueContentView: View {
   @State private var queue = QueueClipboard.shared
+  @Default(.queueCyclePaste) private var queueCyclePaste
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -110,6 +111,12 @@ struct QueueContentView: View {
           .font(.system(size: 15, weight: .bold))
 
         Spacer()
+
+        Toggle(isOn: $queueCyclePaste) {
+          Text("Cycle")
+            .font(.system(size: 13, weight: .medium))
+        }
+        .toggleStyle(.checkbox)
 
         Button("Clear") {
           queue.clear()
