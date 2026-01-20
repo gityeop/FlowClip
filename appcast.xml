@@ -16,10 +16,10 @@
         ]]>
       </description>
       <pubDate>2025-11-27</pubDate>
-      <releaseNotesLink>https://github.com/p0deje/Maccy/releases/tag/2.6.1</releaseNotesLink>
+      <releaseNotesLink>https://github.com/gityeop/Maccy/releases/tag/2.6.1</releaseNotesLink>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/gityeop/FlowClip/releases/download/2.6.1/Maccy.app.zip"
+        url="https://github.com/gityeop/Maccy/releases/download/2.6.1/Maccy.app.zip"
         sparkle:version="2.6.1"
         sparkle:shortVersionString="2.6.1"
         length="8388608"
