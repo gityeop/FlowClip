@@ -128,37 +128,6 @@ class QueueClipboardManager {
 }
 
 
-struct NoIndicatorsScrollView<Content: View>: NSViewRepresentable {
-  let content: Content
-
-  init(@ViewBuilder content: () -> Content) {
-    self.content = content()
-  }
-
-  func makeNSView(context: Context) -> NSScrollView {
-    let scrollView = NSScrollView()
-    scrollView.hasVerticalScroller = false
-    scrollView.hasHorizontalScroller = false
-    scrollView.autohidesScrollers = true
-    scrollView.drawsBackground = false
-
-    let hostingView = NSHostingView(rootView: content)
-    hostingView.translatesAutoresizingMaskIntoConstraints = false
-    scrollView.documentView = hostingView
-
-    hostingView.leadingAnchor.constraint(equalTo: scrollView.contentView.leadingAnchor).isActive = true
-    hostingView.trailingAnchor.constraint(equalTo: scrollView.contentView.trailingAnchor).isActive = true
-    hostingView.topAnchor.constraint(equalTo: scrollView.contentView.topAnchor).isActive = true
-
-    return scrollView
-  }
-
-  func updateNSView(_ nsView: NSScrollView, context: Context) {
-    if let hostingView = nsView.documentView as? NSHostingView<Content> {
-      hostingView.rootView = content
-    }
-  }
-}
 
 struct QueueContentView: View {
   @State private var queue = QueueClipboard.shared
@@ -208,8 +177,8 @@ struct QueueContentView: View {
           .frame(maxWidth: .infinity, alignment: .center)
         Spacer()
       } else {
-        NoIndicatorsScrollView {
-          VStack(alignment: .leading, spacing: 0) {
+        ScrollView {
+          LazyVStack(alignment: .leading, spacing: 0) {
             ForEach(Array(queue.items.enumerated()), id: \.element.id) { index, queueItem in
               QueueItemView(queueItem: queueItem)
               
@@ -221,6 +190,7 @@ struct QueueContentView: View {
             }
           }
         }
+        .scrollIndicators(.hidden)
       }
     }
     .frame(width: 260, height: 360)
