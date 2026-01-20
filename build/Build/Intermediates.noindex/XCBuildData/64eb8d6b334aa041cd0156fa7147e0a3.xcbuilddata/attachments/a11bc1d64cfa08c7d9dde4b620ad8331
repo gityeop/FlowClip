@@ -1,4 +1,0 @@
-module Fuse {
-header "Fuse-Swift.h"
-export *
-}

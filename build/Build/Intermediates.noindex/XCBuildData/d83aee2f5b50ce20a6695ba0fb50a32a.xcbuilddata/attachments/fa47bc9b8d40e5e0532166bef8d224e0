@@ -1,4 +1,0 @@
-module Settings {
-header "Settings-Swift.h"
-export *
-}
