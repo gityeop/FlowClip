@@ -19,12 +19,12 @@
       <releaseNotesLink>https://github.com/p0deje/Maccy/releases/tag/2.6.1</releaseNotesLink>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/p0deje/Maccy/releases/download/2.6.1/Maccy.app.zip"
-        sparkle:version="60"
+        url="https://github.com/gityeop/FlowClip/releases/download/2.6.1/Maccy.app.zip"
+        sparkle:version="2.6.1"
         sparkle:shortVersionString="2.6.1"
-        length="0"
+        length="8388608"
         type="application/octet-stream"
-      />
+        sparkle:edSignature="..."/>
     </item>
   </channel>
 </rss>
