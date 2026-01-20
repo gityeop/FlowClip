@@ -1,0 +1,2 @@
+# Exclude Makefile from language statistics
+Makefile linguist-detectable=false
