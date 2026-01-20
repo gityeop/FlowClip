@@ -1,4 +1,0 @@
-module Defaults {
-header "Defaults-Swift.h"
-export *
-}

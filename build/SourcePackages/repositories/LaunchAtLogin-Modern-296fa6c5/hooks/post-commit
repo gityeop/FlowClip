@@ -1,6 +1,0 @@
-#!/bin/bash
-# 웹훅 URL
-WEBHOOK_URL="https://api.pushcut.io/IkkBoBPGI6hZhplChPOZl/notifications/commit"
-
-# 웹훅 호출
-curl -X POST -H "Content-Type: application/json" -d '{"event":"commit"}' $WEBHOOK_URL

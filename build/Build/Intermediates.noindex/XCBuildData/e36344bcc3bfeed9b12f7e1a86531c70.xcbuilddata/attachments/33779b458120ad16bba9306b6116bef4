@@ -1,4 +1,0 @@
-module Logging {
-header "Logging-Swift.h"
-export *
-}
