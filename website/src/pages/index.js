@@ -14,18 +14,21 @@ export default function Home() {
           <div className="container">
             <div className="row" style={{alignItems: 'center', textAlign: 'left'}}>
               <div className="col col--6">
-                <img 
-                  src="img/logo.png" 
-                  alt="FlowClip Icon" 
-                  style={{width: '128px', height: '128px', marginBottom: '2rem'}} 
-                />
-                <h1 className="hero__title" style={{fontSize: '4rem', textAlign: 'left'}}>
-                  FlowClip
-                </h1>
-                <p className="hero__subtitle" style={{textAlign: 'left', margin: '0 0 3rem 0'}}>
-                  Clipboard manager for macOS which does one job<br />
-                  - keep your copy history at hand. Period.<br /><br />
-                  <strong>Lightweight. Open source. No fluff.</strong>
+                <div style={{display: 'flex', alignItems: 'center', gap: '2rem', marginBottom: '2.5rem'}}>
+                  <img 
+                    src="img/logo.png" 
+                    alt="FlowClip Logo" 
+                    style={{width: '120px', height: '120px'}} 
+                  />
+                  <h1 className="hero__title" style={{fontSize: '3.5rem', textAlign: 'left', margin: 0, lineHeight: '1.2'}}>
+                    FlowClip:<br />
+                    Clipboard, <br />
+                    built for flow.
+                  </h1>
+                </div>
+                <p className="hero__subtitle" style={{textAlign: 'left', margin: '0 0 3rem 0', fontSize: '20px', lineHeight: '1.6'}}>
+                  The lightweight, keyboard-first clipboard manager for macOS <br />
+                  with powerful sequential pasting and batch operations.
                 </p>
                 <div className="hero__buttons" style={{display: 'flex', gap: '1rem'}}>
                   <Link
@@ -33,7 +36,7 @@ export default function Home() {
                     to="https://github.com/gityeop/FlowClip/releases/latest">
                     Download now
                   </Link>
-                  <p style={{marginTop: '1rem', fontSize: '0.9rem', color: 'var(--ifm-color-emphasis-600)'}}>
+                  <p style={{marginTop: '1.5rem', fontSize: '14px', color: 'var(--ifm-color-emphasis-600)'}}>
                     Requires macOS Sonoma 14 or higher
                   </p>
                 </div>
