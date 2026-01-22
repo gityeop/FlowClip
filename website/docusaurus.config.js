@@ -11,6 +11,7 @@ const config = {
 
   organizationName: 'gityeop',
   projectName: 'FlowClip',
+  deploymentBranch: 'gh-pages',
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
