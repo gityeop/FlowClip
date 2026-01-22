@@ -4,9 +4,12 @@
 [![Downloads](https://img.shields.io/github/downloads/gityeop/FlowClip/total.svg)](https://github.com/gityeop/FlowClip/releases/latest)
 [![Version](https://img.shields.io/github/v/release/gityeop/FlowClip)](https://github.com/gityeop/FlowClip/releases/latest)
 
+<img align="left" width="128" height="128" src="Maccy/Assets.xcassets/AppIcon.appiconset/AppIcon (Big Sur)-128w.png" alt="FlowClip Icon">
+
 **FlowClip** allows you to keep the existing powerful features of Maccy while leveraging the new **Queue Clipboard** capability. With FlowClip, you can easily perform batch operations.
 
 FlowClip is a fork of [Maccy](https://maccy.app), keeping it lightweight, fast, and open-source.
+<br clear="left"/>
 
 ## ✨ Key Features
 
