@@ -58,20 +58,10 @@ class QueueClipboardManager {
   static let shared = QueueClipboardManager()
   private var eventTap: CFMachPort?
   private var runLoopSource: CFRunLoopSource?
+  fileprivate var isInternalPaste = false
 
   func startMonitoring() {
     stopMonitoring()
-    
-    // Ensure Accessibility permissions are granted
-    let options = [kAXTrustedCheckOptionPrompt: true] as CFDictionary
-    let isTrusted = AXIsProcessTrustedWithOptions(options)
-    
-    if !isTrusted {
-      NSLog("FlowClip: Accessibility permissions not granted. Queue Clipboard interception will fail.")
-      // The system prompt should appear. We can't proceed with tap creation until granted.
-      return
-    }
-
     let eventMask = (1 << CGEventType.keyDown.rawValue)
     eventTap = CGEvent.tapCreate(
       tap: .cgSessionEventTap,
@@ -86,24 +76,23 @@ class QueueClipboardManager {
           let isCommand = flags.contains(.maskCommand)
 
           if isV && isCommand {
-            // Check for our tagged event (magic number 55555)
-            if event.getIntegerValueField(.eventSourceUserData) == 55555 {
+            if QueueClipboardManager.shared.isInternalPaste {
+              QueueClipboardManager.shared.isInternalPaste = false
               return Unmanaged.passRetained(event)
             }
 
             if let item = QueueClipboard.shared.nextToPaste() {
+              QueueClipboardManager.shared.isInternalPaste = true
               DispatchQueue.main.async {
                 Clipboard.shared.copy(item)
-                // Small delay to ensure copy finishes before paste
-                // Although copy is sync, the system might need a tick
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                   Clipboard.shared.paste()
-                }
+                Clipboard.shared.paste()
 
                 // Paste separator if configured
                 let separator = Defaults[.queueSeparator]
                 if let separatorValue = separator.value {
-                  DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                  // Small delay to ensure the main item is pasted first
+                  DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    QueueClipboardManager.shared.isInternalPaste = true
                     Clipboard.shared.copy(separatorValue)
                     Clipboard.shared.paste()
                   }
@@ -112,6 +101,7 @@ class QueueClipboardManager {
               return nil
             } else {
               // Queue is active but exhausted (and cycle is off)
+              // Block the original Command + V and beep
               NSSound.beep()
               return nil
             }
@@ -122,16 +112,14 @@ class QueueClipboardManager {
       userInfo: nil
     )
     if let eventTap = eventTap {
-      NSLog("FlowClip: Queue Clipboard Event Tap created successfully.")
       runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
       CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
       CGEvent.tapEnable(tap: eventTap, enable: true)
-    } else {
-      NSLog("FlowClip: Failed to create Event Tap. Check App Sandbox or Permissions.")
     }
   }
 
   func stopMonitoring() {
+    isInternalPaste = false
     if let eventTap = eventTap { CGEvent.tapEnable(tap: eventTap, enable: false) }
     if let runLoopSource = runLoopSource { CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes) }
     eventTap = nil
@@ -226,8 +214,10 @@ struct QueueItemView: View {
         // 1. Ensure focus goes back to the previous app
         NSApp.deactivate()
         
+        // 2. Prepare for internal paste bypass
+        QueueClipboardManager.shared.isInternalPaste = true
         
-        // 2. Copy the item
+        // 3. Copy the item
         Clipboard.shared.copy(queueItem.item)
         
         // 4. Paste with a slight delay to allow focus switch
@@ -377,6 +367,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationDidFinishLaunching(_ aNotification: Notification) {
+    Accessibility.check()
     migrateUserDefaults()
     disableUnusedGlobalHotkeys()
 

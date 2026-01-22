@@ -872,14 +872,14 @@
 				TargetAttributes = {
 					DA0EE7B5204657830025FC60 = {
 						CreatedOnToolsVersion = 9.2;
-						DevelopmentTeam = MN3X4648SC;
+						DevelopmentTeam = 79Q5RV23F9;
 						LastSwiftMigration = 1020;
 						ProvisioningStyle = Automatic;
 						TestTargetID = DAEE38421E3DBEB100DD2966;
 					};
 					DA360DAF1E3DF137005C6F6B = {
 						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = MN3X4648SC;
+						DevelopmentTeam = 79Q5RV23F9;
 						LastSwiftMigration = 1020;
 						ProvisioningStyle = Automatic;
 						TestTargetID = DAEE38421E3DBEB100DD2966;
@@ -1439,7 +1439,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = MN3X4648SC;
+				DEVELOPMENT_TEAM = 79Q5RV23F9;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = MaccyUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1466,7 +1466,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = MN3X4648SC;
+				DEVELOPMENT_TEAM = 79Q5RV23F9;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = MaccyUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1491,7 +1491,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = MN3X4648SC;
+				DEVELOPMENT_TEAM = 79Q5RV23F9;
 				INFOPLIST_FILE = MaccyTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1515,7 +1515,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = MN3X4648SC;
+				DEVELOPMENT_TEAM = 79Q5RV23F9;
 				INFOPLIST_FILE = MaccyTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1661,9 +1661,9 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = MN3X4648SC;
+				DEVELOPMENT_TEAM = 79Q5RV23F9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1696,9 +1696,9 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = MN3X4648SC;
+				DEVELOPMENT_TEAM = 79Q5RV23F9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
