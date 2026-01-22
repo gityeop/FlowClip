@@ -20,6 +20,9 @@ Copy multiple items one after another and paste them sequentially or all at once
 - **Custom Separators**: When pasting all items, choose to separate them with a space, new line, comma, or any custom character.
 - **Visual Queue**: View and manage your queued items in a dedicated floating window.
 
+> [!IMPORTANT]
+> **To use Queue Clipboard:** You must grant **Accessibility permissions** to FlowClip in System Settings. Please **restart the app** after granting permission.
+
 ### Core Features (inherited from Maccy)
 - Lightweight & Fast
 - Keyboard-first navigation
