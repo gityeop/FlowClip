@@ -58,7 +58,6 @@ class QueueClipboardManager {
   static let shared = QueueClipboardManager()
   private var eventTap: CFMachPort?
   private var runLoopSource: CFRunLoopSource?
-  fileprivate var isInternalPaste = false
 
   func startMonitoring() {
     stopMonitoring()
@@ -76,23 +75,24 @@ class QueueClipboardManager {
           let isCommand = flags.contains(.maskCommand)
 
           if isV && isCommand {
-            if QueueClipboardManager.shared.isInternalPaste {
-              QueueClipboardManager.shared.isInternalPaste = false
+            // Check for our tagged event (magic number 55555)
+            if event.getIntegerValueField(.eventSourceUserData) == 55555 {
               return Unmanaged.passRetained(event)
             }
 
             if let item = QueueClipboard.shared.nextToPaste() {
-              QueueClipboardManager.shared.isInternalPaste = true
               DispatchQueue.main.async {
                 Clipboard.shared.copy(item)
-                Clipboard.shared.paste()
+                // Small delay to ensure copy finishes before paste
+                // Although copy is sync, the system might need a tick
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                   Clipboard.shared.paste()
+                }
 
                 // Paste separator if configured
                 let separator = Defaults[.queueSeparator]
                 if let separatorValue = separator.value {
-                  // Small delay to ensure the main item is pasted first
-                  DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    QueueClipboardManager.shared.isInternalPaste = true
+                  DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                     Clipboard.shared.copy(separatorValue)
                     Clipboard.shared.paste()
                   }
@@ -101,7 +101,6 @@ class QueueClipboardManager {
               return nil
             } else {
               // Queue is active but exhausted (and cycle is off)
-              // Block the original Command + V and beep
               NSSound.beep()
               return nil
             }
@@ -119,7 +118,6 @@ class QueueClipboardManager {
   }
 
   func stopMonitoring() {
-    isInternalPaste = false
     if let eventTap = eventTap { CGEvent.tapEnable(tap: eventTap, enable: false) }
     if let runLoopSource = runLoopSource { CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes) }
     eventTap = nil
@@ -214,10 +212,8 @@ struct QueueItemView: View {
         // 1. Ensure focus goes back to the previous app
         NSApp.deactivate()
         
-        // 2. Prepare for internal paste bypass
-        QueueClipboardManager.shared.isInternalPaste = true
         
-        // 3. Copy the item
+        // 2. Copy the item
         Clipboard.shared.copy(queueItem.item)
         
         // 4. Paste with a slight delay to allow focus switch
