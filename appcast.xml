@@ -11,6 +11,7 @@
         <![CDATA[
           <ul>
             <li>Fixed black background on App Icon in update window.</li>
+            <li>Fixed incorrect update notification showing legacy Maccy info.</li>
           </ul>
         ]]>
       </description>
