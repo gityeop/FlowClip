@@ -29,16 +29,30 @@ export default function Home() {
                   The lightweight, keyboard-first clipboard manager for macOS <br />
                   with powerful sequential pasting and batch operations.
                 </p>
-                <div className="hero__buttons" style={{display: 'flex', gap: '1rem'}}>
+                <div className="hero__buttons" style={{display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap'}}>
                   <Link
                     className="button--bold"
                     to="https://github.com/gityeop/FlowClip/releases/latest">
                     Download now
                   </Link>
-                  <p style={{marginTop: '1.5rem', fontSize: '14px', color: 'var(--ifm-color-emphasis-600)'}}>
-                    Requires macOS Sonoma 14 or higher
-                  </p>
+                  <div style={{
+                    background: '#f1f3f5',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '12px',
+                    border: '1px solid #dee2e6',
+                    fontFamily: 'monospace',
+                    fontSize: '0.9rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}>
+                    <span style={{color: '#adb5bd'}}>$</span>
+                    <code>brew install --cask gityeop/flowclip/flowclip</code>
+                  </div>
                 </div>
+                <p style={{marginTop: '1.5rem', fontSize: '14px', color: 'var(--ifm-color-emphasis-600)'}}>
+                  Requires macOS Sonoma 14 or higher
+                </p>
               </div>
               <div className="col col--6">
                  <div style={{
