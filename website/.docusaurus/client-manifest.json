@@ -1,0 +1,87 @@
+{
+  "entrypoints": [
+    "main"
+  ],
+  "origins": {
+    "780": [
+      780
+    ],
+    "main": [
+      354,
+      869,
+      792
+    ],
+    "runtime~main": [
+      792,
+      869,
+      354
+    ],
+    "a7456010": [
+      235
+    ],
+    "c4f5d8e4": [
+      634
+    ],
+    "styles": [
+      354,
+      792,
+      869
+    ]
+  },
+  "assets": {
+    "235": {
+      "js": [
+        {
+          "file": "assets/js/a7456010.7bc947ef.js",
+          "hash": "d690e7fb5830c7cb",
+          "publicPath": "/FlowClip/assets/js/a7456010.7bc947ef.js"
+        }
+      ]
+    },
+    "354": {
+      "js": [
+        {
+          "file": "assets/js/runtime~main.72d965b8.js",
+          "hash": "f92c02f231e28647",
+          "publicPath": "/FlowClip/assets/js/runtime~main.72d965b8.js"
+        }
+      ]
+    },
+    "634": {
+      "js": [
+        {
+          "file": "assets/js/c4f5d8e4.54a966d1.js",
+          "hash": "a937d255eafb0c88",
+          "publicPath": "/FlowClip/assets/js/c4f5d8e4.54a966d1.js"
+        }
+      ]
+    },
+    "780": {
+      "js": [
+        {
+          "file": "assets/js/780.32249bb5.js",
+          "hash": "5327b0626aae1dcb",
+          "publicPath": "/FlowClip/assets/js/780.32249bb5.js"
+        }
+      ]
+    },
+    "792": {
+      "js": [
+        {
+          "file": "assets/js/main.81d0a8a0.js",
+          "hash": "8ac13ebc159cf9bc",
+          "publicPath": "/FlowClip/assets/js/main.81d0a8a0.js"
+        }
+      ]
+    },
+    "869": {
+      "css": [
+        {
+          "file": "assets/css/styles.5fda962f.css",
+          "hash": "508b9a3314b9775e",
+          "publicPath": "/FlowClip/assets/css/styles.5fda962f.css"
+        }
+      ]
+    }
+  }
+}
