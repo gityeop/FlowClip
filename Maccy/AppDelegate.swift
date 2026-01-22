@@ -61,6 +61,17 @@ class QueueClipboardManager {
 
   func startMonitoring() {
     stopMonitoring()
+    
+    // Ensure Accessibility permissions are granted
+    let options = [kAXTrustedCheckOptionPrompt: true] as CFDictionary
+    let isTrusted = AXIsProcessTrustedWithOptions(options)
+    
+    if !isTrusted {
+      NSLog("FlowClip: Accessibility permissions not granted. Queue Clipboard interception will fail.")
+      // The system prompt should appear. We can't proceed with tap creation until granted.
+      return
+    }
+
     let eventMask = (1 << CGEventType.keyDown.rawValue)
     eventTap = CGEvent.tapCreate(
       tap: .cgSessionEventTap,
@@ -111,9 +122,12 @@ class QueueClipboardManager {
       userInfo: nil
     )
     if let eventTap = eventTap {
+      NSLog("FlowClip: Queue Clipboard Event Tap created successfully.")
       runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
       CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
       CGEvent.tapEnable(tap: eventTap, enable: true)
+    } else {
+      NSLog("FlowClip: Failed to create Event Tap. Check App Sandbox or Permissions.")
     }
   }
 
