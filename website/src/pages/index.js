@@ -45,8 +45,8 @@ export default function Home() {
                    background: '#fff', 
                    padding: '1rem',
                    borderRadius: '24px', 
-                   boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-                   border: '1px solid #eee'
+                   boxShadow: '0 8px 0 rgba(0,0,0,1)',
+                   border: '2px solid #000'
                  }}>
                    <img 
                      src="img/product_demo.gif" 
