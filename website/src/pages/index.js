@@ -99,7 +99,7 @@ export default function Home() {
                  {title: 'Free & Open Source', desc: 'Completely free to use. Licensed under MIT.'},
                ].map((feature, idx) => (
                  <div key={idx} className="col col--3">
-                   <h3 style={{fontSize: '2rem', marginBottom: '1rem'}}>{feature.title}</h3>
+                   <h3 style={{fontSize: '1.6rem', marginBottom: '1rem'}}>{feature.title}</h3>
                    <p style={{fontSize: '1.1rem', color: 'var(--ifm-color-emphasis-700)'}}>{feature.desc}</p>
                  </div>
                ))}
