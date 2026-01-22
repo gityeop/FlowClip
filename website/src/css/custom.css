@@ -120,7 +120,7 @@
   font-weight: 800;
   padding: 1.25rem 3rem;
   font-size: 1.25rem;
-  border-radius: 9999px;
+  border-radius: 13px;
   border: 2px solid #000000;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 1);
   transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
