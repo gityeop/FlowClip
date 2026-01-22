@@ -49,7 +49,7 @@ export default function Home() {
                    border: '2px solid #000'
                  }}>
                    <img 
-                     src="img/product_demo.gif" 
+                     src="img/maccy_demo.gif" 
                      alt="FlowClip Demo"
                      style={{borderRadius: '12px', width: '100%', display: 'block'}}
                    />
@@ -71,19 +71,18 @@ export default function Home() {
                 </p>
               </div>
               <div className="col col--6">
-                 {/* Placeholder for screenshot/visual */}
                  <div style={{
-                   background: '#000', 
+                   background: '#fff', 
+                   padding: '1rem',
                    borderRadius: '24px', 
-                   aspectRatio: '16/10', 
-                   boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                   display: 'flex',
-                   alignItems: 'center',
-                   justifyContent: 'center',
-                   color: '#fff',
-                   fontWeight: '800'
+                   boxShadow: '0 8px 0 rgba(0,0,0,1)',
+                   border: '2px solid #000'
                  }}>
-                   PRODUCT VISUAL
+                   <img 
+                     src="img/product_demo.gif" 
+                     alt="Queue Clipboard Demo"
+                     style={{borderRadius: '12px', width: '100%', display: 'block'}}
+                   />
                  </div>
               </div>
             </div>
