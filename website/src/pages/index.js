@@ -20,8 +20,8 @@ export default function Home() {
                     alt="FlowClip Logo" 
                     style={{width: '120px', height: '120px'}} 
                   />
-                  <h1 className="hero__title" style={{fontSize: '3.5rem', textAlign: 'left', margin: 0, lineHeight: '1.2'}}>
-                    FlowClip: Clipboard,<br />
+                  <h1 className="hero__title" style={{fontSize: '2.8rem', textAlign: 'left', margin: 0, lineHeight: '1.2'}}>
+                    <span style={{whiteSpace: 'nowrap'}}>FlowClip: Clipboard,</span><br />
                     built for flow.
                   </h1>
                 </div>
