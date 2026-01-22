@@ -21,8 +21,7 @@ export default function Home() {
                     style={{width: '120px', height: '120px'}} 
                   />
                   <h1 className="hero__title" style={{fontSize: '3.5rem', textAlign: 'left', margin: 0, lineHeight: '1.2'}}>
-                    FlowClip:<br />
-                    Clipboard, <br />
+                    FlowClip: Clipboard,<br />
                     built for flow.
                   </h1>
                 </div>
@@ -50,8 +49,8 @@ export default function Home() {
                    border: '1px solid #eee'
                  }}>
                    <img 
-                     src="https://raw.githubusercontent.com/p0deje/Maccy/master/Screenshots/Main.png" 
-                     alt="FlowClip Screenshot"
+                     src="img/product_demo.gif" 
+                     alt="FlowClip Demo"
                      style={{borderRadius: '12px', width: '100%', display: 'block'}}
                    />
                  </div>
