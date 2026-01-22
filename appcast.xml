@@ -6,21 +6,21 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>1.0.4</title>
+      <title>1.0.5</title>
       <description>
         <![CDATA[
           <ul>
-            <li>Improved App Icon appearance in update window (Fixed black corners issue with blurred background).</li>
+            <li>Fixed black corners on App Icon by correcting transparency rendering.</li>
           </ul>
         ]]>
       </description>
-      <pubDate>Thu, 22 Jan 2026 22:38:00 +0900</pubDate>
-      <releaseNotesLink>https://github.com/gityeop/Maccy/releases/tag/v1.0.4</releaseNotesLink>
+      <pubDate>Thu, 22 Jan 2026 22:50:00 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/Maccy/releases/tag/v1.0.5</releaseNotesLink>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/gityeop/Maccy/releases/download/v1.0.4/FlowClip_1.0.4.zip"
-        sparkle:version="5"
-        sparkle:shortVersionString="1.0.4"
+        url="https://github.com/gityeop/Maccy/releases/download/v1.0.5/FlowClip_1.0.5.zip"
+        sparkle:version="6"
+        sparkle:shortVersionString="1.0.5"
         length="8388608"
         type="application/octet-stream" />
     </item>
