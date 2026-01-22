@@ -4,7 +4,7 @@
 [![Downloads](https://img.shields.io/github/downloads/gityeop/FlowClip/total.svg)](https://github.com/gityeop/FlowClip/releases/latest)
 [![Version](https://img.shields.io/github/v/release/gityeop/FlowClip)](https://github.com/gityeop/FlowClip/releases/latest)
 
-**FlowClip** allows you to keep the existing powerful features of Maccy while leveraging the new **Queue Clipboard** capability. Copied items are stored in history for easy access, and you can now perform batch operations with ease.
+**FlowClip** allows you to keep the existing powerful features of Maccy while leveraging the new **Queue Clipboard** capability. With FlowClip, you can easily perform batch operations.
 
 FlowClip is a fork of [Maccy](https://maccy.app), keeping it lightweight, fast, and open-source.
 
@@ -56,5 +56,5 @@ For advanced usage and configuration, please refer to the application preference
 MIT License.
 
 Based on [Maccy](https://github.com/p0deje/Maccy) by Alex Rodionov.
-Copyright (c) 2024 Sang Yeop Lim (FlowClip)
+Copyright (c) 2026 Sang Yeop Lim (FlowClip)
 Copyright (c) 2018 Alex Rodionov (Maccy)
