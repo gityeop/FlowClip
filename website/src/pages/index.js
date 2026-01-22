@@ -12,21 +12,47 @@ export default function Home() {
       <main>
         <div className="hero">
           <div className="container">
-            <h1 className="hero__title">
-              FlowClip: <br />
-              Clipboard, <br />
-              built for flow.
-            </h1>
-            <p className="hero__subtitle">
-              The lightweight, keyboard-first clipboard manager for macOS <br />
-              with powerful sequential pasting and batch operations.
-            </p>
-            <div className="hero__buttons">
-              <Link
-                className="button--bold"
-                to="https://github.com/gityeop/FlowClip/releases/latest">
-                Download Now
-              </Link>
+            <div className="row" style={{alignItems: 'center', textAlign: 'left'}}>
+              <div className="col col--6">
+                <img 
+                  src="img/logo.png" 
+                  alt="FlowClip Icon" 
+                  style={{width: '128px', height: '128px', marginBottom: '2rem'}} 
+                />
+                <h1 className="hero__title" style={{fontSize: '4rem', textAlign: 'left'}}>
+                  FlowClip
+                </h1>
+                <p className="hero__subtitle" style={{textAlign: 'left', margin: '0 0 3rem 0'}}>
+                  Clipboard manager for macOS which does one job<br />
+                  - keep your copy history at hand. Period.<br /><br />
+                  <strong>Lightweight. Open source. No fluff.</strong>
+                </p>
+                <div className="hero__buttons" style={{display: 'flex', gap: '1rem'}}>
+                  <Link
+                    className="button--bold"
+                    to="https://github.com/gityeop/FlowClip/releases/latest">
+                    Download now
+                  </Link>
+                  <p style={{marginTop: '1rem', fontSize: '0.9rem', color: 'var(--ifm-color-emphasis-600)'}}>
+                    Requires macOS Sonoma 14 or higher
+                  </p>
+                </div>
+              </div>
+              <div className="col col--6">
+                 <div style={{
+                   background: '#fff', 
+                   padding: '1rem',
+                   borderRadius: '24px', 
+                   boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+                   border: '1px solid #eee'
+                 }}>
+                   <img 
+                     src="https://raw.githubusercontent.com/p0deje/Maccy/master/Screenshots/Main.png" 
+                     alt="FlowClip Screenshot"
+                     style={{borderRadius: '12px', width: '100%', display: 'block'}}
+                   />
+                 </div>
+              </div>
             </div>
           </div>
         </div>

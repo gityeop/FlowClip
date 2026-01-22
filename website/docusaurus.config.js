@@ -4,7 +4,7 @@
 const config = {
   title: 'FlowClip',
   tagline: 'Clipboard, built for flow.',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/logo.png',
 
   url: 'https://gityeop.github.io',
   baseUrl: '/FlowClip/',
