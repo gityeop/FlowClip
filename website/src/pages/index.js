@@ -1,15 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import clsx from 'clsx';
 
 export default function Home() {
   const {siteConfig} = useDocusaurusContext();
+  const [showToast, setShowToast] = useState(false);
+
+  const brewCommand = 'brew install --cask gityeop/flowclip/flowclip';
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(brewCommand).then(() => {
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2000);
+    });
+  };
+
   return (
     <Layout
       title={`${siteConfig.title}`}
       description="FlowClip: Clipboard, built for flow.">
       <main>
+        <div className={clsx('toast', showToast && 'toast--visible')}>
+          ✓ Copied to clipboard!
+        </div>
+
         <div className="hero">
           <div className="container">
             <div className="row" style={{alignItems: 'center', textAlign: 'left'}}>
@@ -25,30 +41,22 @@ export default function Home() {
                     built for flow.
                   </h1>
                 </div>
-                <p className="hero__subtitle" style={{textAlign: 'left', margin: '0 0 3rem 0', fontSize: '20px', lineHeight: '1.6'}}>
+                <p className="hero__subtitle" style={{textAlign: 'left', margin: '0 0 2rem 0', fontSize: '20px', lineHeight: '1.6'}}>
                   The lightweight, keyboard-first clipboard manager for macOS <br />
                   with powerful sequential pasting and batch operations.
                 </p>
-                <div className="hero__buttons" style={{display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap'}}>
+                <div className="hero__buttons" style={{display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start'}}>
                   <Link
                     className="button--bold"
                     to="https://github.com/gityeop/FlowClip/releases/latest">
                     Download now
                   </Link>
-                  <div style={{
-                    background: '#f1f3f5',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '12px',
-                    border: '1px solid #dee2e6',
-                    fontFamily: 'monospace',
-                    fontSize: '0.9rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}>
+                  
+                  <button className="button--brew" onClick={copyToClipboard} title="Click to copy">
                     <span style={{color: '#adb5bd'}}>$</span>
-                    <code>brew install --cask gityeop/flowclip/flowclip</code>
-                  </div>
+                    <code>{brewCommand}</code>
+                    <span style={{fontSize: '0.8rem', marginLeft: '0.5rem', opacity: 0.5}}>(Click to copy)</span>
+                  </button>
                 </div>
                 <p style={{marginTop: '1.5rem', fontSize: '14px', color: 'var(--ifm-color-emphasis-600)'}}>
                   Requires macOS Sonoma 14 or higher
