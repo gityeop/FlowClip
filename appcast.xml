@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>FlowClip</title>
-    <link>https://raw.githubusercontent.com/p0deje/Maccy/master/appcast.xml</link>
+    <link>https://raw.githubusercontent.com/gityeop/FlowClip/master/appcast.xml</link>
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
@@ -15,10 +15,10 @@
         ]]>
       </description>
       <pubDate>Thu, 22 Jan 2026 22:50:00 +0900</pubDate>
-      <releaseNotesLink>https://github.com/gityeop/Maccy/releases/tag/v1.0.5</releaseNotesLink>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.5</releaseNotesLink>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/gityeop/Maccy/releases/download/v1.0.5/FlowClip_1.0.5.zip"
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.5/FlowClip_1.0.5.zip"
         sparkle:version="6"
         sparkle:shortVersionString="1.0.5"
         length="8388608"
