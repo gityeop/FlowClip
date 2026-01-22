@@ -4,3 +4,4 @@ Maccy.xcodeproj/project.xcworkspace/xcshareddata
 .DS_Store
 Maccy/.DS_Store
 build/
+node_modules/
