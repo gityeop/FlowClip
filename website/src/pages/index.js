@@ -96,8 +96,9 @@ export default function Home() {
                  {title: 'Keyboard First', desc: 'No mouse required. Total control at your fingertips.'},
                  {title: 'Native Performance', desc: 'Lightweight and fast. Designed specifically for macOS.'},
                  {title: 'Privacy Conscious', desc: 'Local-only storage. Your data stays on your machine.'},
+                 {title: 'Free & Open Source', desc: 'Completely free to use. Licensed under MIT.'},
                ].map((feature, idx) => (
-                 <div key={idx} className="col col--4">
+                 <div key={idx} className="col col--3">
                    <h3 style={{fontSize: '2rem', marginBottom: '1rem'}}>{feature.title}</h3>
                    <p style={{fontSize: '1.1rem', color: 'var(--ifm-color-emphasis-700)'}}>{feature.desc}</p>
                  </div>
