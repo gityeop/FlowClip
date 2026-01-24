@@ -8,7 +8,7 @@ export default function Home() {
   const {siteConfig} = useDocusaurusContext();
   const [showToast, setShowToast] = useState(false);
 
-  const brewCommand = 'brew install --cask gityeop/flowclip/flowclip';
+  const brewCommand = 'brew tap gityeop/flowclip && brew install --cask flowclip';
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(brewCommand).then(() => {
