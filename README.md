@@ -35,10 +35,9 @@ Copy multiple items one after another and paste them sequentially or all at once
 Download the latest version from the [Releases page](https://github.com/gityeop/FlowClip/releases/latest).
 
 ### Homebrew
-*(Instructions for Homebrew installation will be available after registration)*
 ```sh
-# Example command (Coming Soon)
-brew install flowclip
+brew tap gityeop/flowclip
+brew install --cask flowclip
 ```
 
 ## Usage
