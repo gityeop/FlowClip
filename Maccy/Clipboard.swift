@@ -133,8 +133,6 @@ class Clipboard {
     let keyVUp = CGEvent(keyboardEventSource: source, virtualKey: vCode, keyDown: false)
     keyVDown?.flags = cmdFlag
     keyVUp?.flags = cmdFlag
-    keyVDown?.setIntegerValueField(.eventSourceUserData, value: 55555)
-    keyVUp?.setIntegerValueField(.eventSourceUserData, value: 55555)
     keyVDown?.post(tap: .cgSessionEventTap)
     keyVUp?.post(tap: .cgSessionEventTap)
   }
