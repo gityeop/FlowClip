@@ -17,6 +17,7 @@ struct GeneralSettingsPane: View {
   @State private var pasteModifier = HistoryItemAction.paste.modifierFlags.description
   @State private var pasteWithoutFormatting = HistoryItemAction.pasteWithoutFormatting.modifierFlags.description
 
+  @State private var showCustomHelp = false
   @State private var updater = SoftwareUpdater()
 
   var body: some View {
@@ -65,10 +66,16 @@ struct GeneralSettingsPane: View {
       }
 
       Settings.Section(
-        bottomDivider: true,
         label: { Text("Clear Queue:", tableName: "GeneralSettings") }
       ) {
         KeyboardShortcuts.Recorder(for: .queueClear)
+      }
+      
+      Settings.Section(
+        bottomDivider: true,
+        label: { Text("Paste All:", tableName: "GeneralSettings") }
+      ) {
+        KeyboardShortcuts.Recorder(for: .queuePasteAll)
       }
 
       Settings.Section(
@@ -117,11 +124,24 @@ struct GeneralSettingsPane: View {
               }
             }
             .labelsHidden()
-            .frame(width: 150)
+            .frame(width: 154)
 
             if queueSeparator == .custom {
-              TextField("", text: $customQueueSeparator)
-                .frame(width: 150)
+              HStack(spacing: 5) {
+                TextField("", text: $customQueueSeparator)
+                  .frame(width: 124)
+                  .padding(.leading, 4)
+                Button(action: { showCustomHelp.toggle() }) {
+                    Image(systemName: "questionmark.circle")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.borderless)
+                .popover(isPresented: $showCustomHelp) {
+                    Text(NSLocalizedString("CustomSeparatorTooltip", tableName: "GeneralSettings", comment: ""))
+                        .padding()
+                }
+              }
             }
           }
         }

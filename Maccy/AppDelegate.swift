@@ -403,6 +403,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     KeyboardShortcuts.onKeyDown(for: .queueClear) {
       QueueClipboard.shared.clear()
     }
+    
+    KeyboardShortcuts.onKeyDown(for: .queuePasteAll) {
+       guard !QueueClipboard.shared.items.isEmpty else { return }
+       
+       let separator = Defaults[.queueSeparator].value ?? ""
+       let itemsText = QueueClipboard.shared.items.compactMap { $0.item.previewableText }.joined(separator: separator) + separator
+       
+       QueueClipboardManager.shared.isInternalPaste = true
+       Clipboard.shared.copy(itemsText, fromMaccy: true)
+       Clipboard.shared.paste()
+    }
   }
 
   private func toggleQueue() {

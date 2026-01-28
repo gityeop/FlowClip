@@ -23,3 +23,5 @@
 "Space" = "스페이스바";
 "Newline" = "줄바꿈";
 "Comma" = "쉼표";
+"Custom" = "사용자 지정";
+"CustomSeparatorTooltip" = "\\n (줄바꿈), \\t (탭), \\r (캐리지 리턴) 같은 이스케이프 시퀀스를 사용할 수 있습니다.";
