@@ -93,7 +93,7 @@ class QueueClipboardManager {
                   // Small delay to ensure the main item is pasted first
                   DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     QueueClipboardManager.shared.isInternalPaste = true
-                    Clipboard.shared.copy(separatorValue)
+                    Clipboard.shared.copy(separatorValue, fromMaccy: true)
                     Clipboard.shared.paste()
                   }
                 }

@@ -6,6 +6,7 @@ enum QueueSeparator: String, CaseIterable, Identifiable, CustomStringConvertible
   case space
   case newline
   case comma
+  case custom
 
   var id: Self { self }
 
@@ -19,6 +20,8 @@ enum QueueSeparator: String, CaseIterable, Identifiable, CustomStringConvertible
       return NSLocalizedString("Newline", tableName: "GeneralSettings", comment: "")
     case .comma:
       return NSLocalizedString("Comma", tableName: "GeneralSettings", comment: "")
+    case .custom:
+      return NSLocalizedString("Custom", tableName: "GeneralSettings", comment: "")
     }
   }
 
@@ -32,6 +35,11 @@ enum QueueSeparator: String, CaseIterable, Identifiable, CustomStringConvertible
       return "\n"
     case .comma:
       return ","
+    case .custom:
+      return Defaults[.customQueueSeparator]
+        .replacingOccurrences(of: "\\n", with: "\n")
+        .replacingOccurrences(of: "\\t", with: "\t")
+        .replacingOccurrences(of: "\\r", with: "\r")
     }
   }
 }
@@ -49,6 +57,7 @@ extension Defaults.Keys {
   static let clearOnQuit = Key<Bool>("clearOnQuit", default: false)
   static let clearSystemClipboard = Key<Bool>("clearSystemClipboard", default: false)
   static let clipboardCheckInterval = Key<Double>("clipboardCheckInterval", default: 0.5)
+  static let customQueueSeparator = Key<String>("customQueueSeparator", default: ", ")
   static let enabledPasteboardTypes = Key<Set<NSPasteboard.PasteboardType>>(
     "enabledPasteboardTypes", default: Set(StorageType.all.types)
   )
@@ -78,7 +87,7 @@ extension Defaults.Keys {
   static let popupPosition = Key<PopupPosition>("popupPosition", default: .cursor)
   static let popupScreen = Key<Int>("popupScreen", default: 0)
   static let queueCyclePaste = Key<Bool>("queueCyclePaste", default: false)
-  static let queueSeparator = Key<QueueSeparator>("queueSeparator", default: .none)
+  static let queueSeparator = Key<QueueSeparator>("queueSeparator", default: .custom)
   static let previewDelay = Key<Int>("previewDelay", default: 1500)
   static let removeFormattingByDefault = Key<Bool>("removeFormattingByDefault", default: false)
   static let searchMode = Key<Search.Mode>("searchMode", default: .exact)
