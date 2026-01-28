@@ -23,3 +23,5 @@
 "Space" = "Space";
 "Newline" = "Newline";
 "Comma" = "Comma";
+"Custom" = "Custom";
+"CustomSeparatorTooltip" = "You can use escape sequences like \\n (newline), \\t (tab), \\r (carriage return).";

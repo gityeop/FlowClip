@@ -200,8 +200,10 @@ class AppState: Sendable {
         ]
       )
     }
+    NSApp.setActivationPolicy(.regular)
     settingsWindowController?.show()
     settingsWindowController?.window?.orderFrontRegardless()
+    NSApp.activate(ignoringOtherApps: true)
   }
 
   func quit() {
