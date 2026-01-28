@@ -63,9 +63,12 @@ class Clipboard {
   }
 
   @MainActor
-  func copy(_ string: String) {
+  func copy(_ string: String, fromMaccy: Bool = false) {
     pasteboard.clearContents()
     pasteboard.setString(string, forType: .string)
+    if fromMaccy {
+      pasteboard.setString("", forType: .fromMaccy)
+    }
     sync()
     checkForChangesInPasteboard()
   }

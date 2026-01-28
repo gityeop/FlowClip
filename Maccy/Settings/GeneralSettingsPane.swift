@@ -11,6 +11,7 @@ struct GeneralSettingsPane: View {
 
   @Default(.searchMode) private var searchMode
   @Default(.queueSeparator) private var queueSeparator
+  @Default(.customQueueSeparator) private var customQueueSeparator
 
   @State private var copyModifier = HistoryItemAction.copy.modifierFlags.description
   @State private var pasteModifier = HistoryItemAction.paste.modifierFlags.description
@@ -107,15 +108,22 @@ struct GeneralSettingsPane: View {
         .foregroundStyle(.gray)
         .controlSize(.small)
 
-        HStack {
+        HStack(alignment: .firstTextBaseline) {
           Text("QueuePasteSeparator", tableName: "GeneralSettings")
-          Picker("", selection: $queueSeparator) {
-            ForEach(QueueSeparator.allCases) { separator in
-              Text(separator.description)
+          VStack(alignment: .leading) {
+            Picker("", selection: $queueSeparator) {
+              ForEach(QueueSeparator.allCases) { separator in
+                Text(separator.description)
+              }
+            }
+            .labelsHidden()
+            .frame(width: 150)
+
+            if queueSeparator == .custom {
+              TextField("", text: $customQueueSeparator)
+                .frame(width: 150)
             }
           }
-          .labelsHidden()
-          .frame(width: 150)
         }
       }
 
