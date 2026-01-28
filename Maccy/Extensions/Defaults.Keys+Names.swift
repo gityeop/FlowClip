@@ -102,6 +102,8 @@ extension Defaults.Keys {
   static let sortBy = Key<Sorter.By>("sortBy", default: .lastCopiedAt)
   static let suppressClearAlert = Key<Bool>("suppressClearAlert", default: false)
   static let windowSize = Key<NSSize>("windowSize", default: NSSize(width: 450, height: 800))
+  static let queueWindowSize = Key<NSSize>("queueWindowSize", default: NSSize(width: 260, height: 360))
   static let windowPosition = Key<NSPoint>("windowPosition", default: NSPoint(x: 0.5, y: 0.8))
+  static let queueWindowPosition = Key<NSPoint>("queueWindowPosition", default: NSPoint(x: 0.5, y: 0.5))
   static let showApplicationIcons = Key<Bool>("showApplicationIcons", default: false)
 }

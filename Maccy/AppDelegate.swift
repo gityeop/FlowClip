@@ -241,8 +241,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     queuePanel = FloatingPanel(
-      contentRect: NSRect(x: 0, y: 0, width: 260, height: 360),
+      contentRect: NSRect(origin: .zero, size: Defaults[.queueWindowSize]),
       identifier: (Bundle.main.bundleIdentifier ?? "org.p0deje.Maccy") + ".queue",
+      sizePersistenceKey: .queueWindowSize,
+      positionPersistenceKey: .queueWindowPosition,
       onClose: {
         QueueClipboard.shared.isModeActive = false
         QueueClipboardManager.shared.stopMonitoring()
@@ -282,7 +284,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     } else {
       QueueClipboard.shared.isModeActive = true
       QueueClipboardManager.shared.startMonitoring()
-      queuePanel.open(height: 360, at: PopupPosition.cursor, makeKey: false)
+      queuePanel.open(height: Defaults[.queueWindowSize].height, at: PopupPosition.cursor, makeKey: false)
     }
   }
 
@@ -433,7 +435,7 @@ struct QueueContentView: View {
               Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
                   .font(.system(size: 18))
                   .foregroundColor(queueCyclePaste ? .accentColor : .secondary)
-                  .symbolEffect(.bounce, options: .speed(3.0), value: queueCyclePaste)
+                  .symbolEffect(.bounce, options: .speed(6.0), value: queueCyclePaste)
           }
           .buttonStyle(.plain)
           .help("Cycle Paste")
@@ -452,7 +454,7 @@ struct QueueContentView: View {
       .padding(.bottom, 12)
       .padding(.top, 8)
     }
-    .frame(width: 260, height: 360)
+    .frame(minWidth: 260, minHeight: 360)
     .background(
       ZStack {
         VisualEffectView()
