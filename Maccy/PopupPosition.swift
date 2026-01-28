@@ -41,7 +41,8 @@ enum PopupPosition: String, CaseIterable, Identifiable, CustomStringConvertible,
       if let statusBarButton, let screen = NSScreen.main {
         let rectInWindow = statusBarButton.convert(statusBarButton.bounds, to: nil)
         if let screenRect = statusBarButton.window?.convertToScreen(rectInWindow) {
-          var topLeftPoint = NSPoint(x: screenRect.minX, y: screenRect.minY - size.height)
+          let padding: CGFloat = 8
+          var topLeftPoint = NSPoint(x: screenRect.minX, y: screenRect.minY - size.height - padding)
           // Ensure that window doesn't spill over to the right screen.
           if (topLeftPoint.x + size.width) > screen.frame.maxX {
             topLeftPoint.x = screen.frame.maxX - size.width
@@ -73,6 +74,9 @@ enum PopupPosition: String, CaseIterable, Identifiable, CustomStringConvertible,
       }
       if point.y < screenFrame.minY {
         point.y = screenFrame.minY
+      }
+      if point.y + size.height > screenFrame.maxY {
+        point.y = screenFrame.maxY - size.height
       }
     }
     
