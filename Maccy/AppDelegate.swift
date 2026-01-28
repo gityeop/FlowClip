@@ -129,147 +129,7 @@ class QueueClipboardManager {
 
 
 
-struct QueueContentView: View {
-  @State private var queue = QueueClipboard.shared
-  @Default(.queueCyclePaste) private var queueCyclePaste
 
-  var body: some View {
-    VStack(alignment: .leading, spacing: 0) {
-      // Header
-      HStack(spacing: 12) {
-        Text("Queue Clipboard")
-          .font(.system(size: 13, weight: .semibold))
-          .padding(.leading, 4)
-
-        Spacer()
-
-        Toggle(isOn: $queueCyclePaste) {
-          Text("Cycle")
-            .font(.system(size: 11))
-        }
-        .toggleStyle(.checkbox)
-
-        Button("Clear") {
-          queue.clear()
-        }
-        .buttonStyle(.plain)
-        .font(.system(size: 11))
-        .foregroundColor(.accentColor)
-
-        Button(action: { AppState.shared.appDelegate?.queuePanel.close() }) {
-          Image(systemName: "xmark.circle.fill")
-            .font(.system(size: 14))
-        }
-        .buttonStyle(.plain)
-        .foregroundColor(.secondary)
-      }
-      .padding(.horizontal, 12)
-      .padding(.vertical, 10)
-
-      Divider()
-
-      // List
-      if queue.items.isEmpty {
-        Spacer()
-        Text("Empty Queue")
-          .foregroundColor(.secondary)
-          .font(.system(size: 12))
-          .frame(maxWidth: .infinity, alignment: .center)
-        Spacer()
-      } else {
-        ScrollView {
-          LazyVStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(queue.items.enumerated()), id: \.element.id) { index, queueItem in
-              QueueItemView(queueItem: queueItem)
-              
-              if index < queue.items.count - 1 {
-                Divider()
-                  .padding(.horizontal, 10)
-                  .opacity(0.2)
-              }
-            }
-          }
-        }
-        .scrollIndicators(.hidden)
-      }
-    }
-    .frame(width: 260, height: 360)
-    .background(
-      ZStack {
-        VisualEffectView()
-      }
-      .ignoresSafeArea()
-    )
-    .clipShape(RoundedRectangle(cornerRadius: 12))
-  }
-}
-
-struct QueueItemView: View {
-  let queueItem: QueueClipboard.QueueItem
-  @State private var isHovering = false
-
-  var body: some View {
-    ZStack(alignment: .trailing) {
-      Button(action: {
-        // 1. Ensure focus goes back to the previous app
-        NSApp.deactivate()
-        
-        // 2. Prepare for internal paste bypass
-        QueueClipboardManager.shared.isInternalPaste = true
-        
-        // 3. Copy the item
-        Clipboard.shared.copy(queueItem.item)
-        
-        // 4. Paste with a slight delay to allow focus switch
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-          Clipboard.shared.paste()
-        }
-      }) {
-        HStack(alignment: .top, spacing: 10) {
-          VStack(alignment: .leading, spacing: 2) {
-            if let image = queueItem.item.image {
-              Image(nsImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(maxWidth: 80, maxHeight: 45)
-                .cornerRadius(4)
-            }
-            Text(queueItem.item.title)
-              .font(.system(size: 12, weight: .medium))
-              .lineLimit(2)
-              .multilineTextAlignment(.leading)
-          }
-          Spacer()
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(isHovering ? Color.primary.opacity(0.08) : Color.clear)
-        .contentShape(Rectangle())
-      }
-      .buttonStyle(.plain)
-      
-      if isHovering {
-        Button(action: {
-          QueueClipboard.shared.remove(id: queueItem.id)
-        }) {
-          Image(systemName: "xmark")
-            .foregroundColor(.secondary)
-            .font(.system(size: 9, weight: .bold))
-        }
-        .buttonStyle(.plain)
-        .transition(.opacity)
-        .padding(.trailing, 10)
-      }
-    }
-    .opacity(queueItem.isPasted ? 0.3 : 1.0)
-    .onHover { hovering in
-      withAnimation(.easeInOut(duration: 0.1)) {
-        isHovering = hovering
-      }
-    }
-  }
-}
 
 class AppDelegate: NSObject, NSApplicationDelegate {
   var panel: FloatingPanel<ContentView>!
@@ -505,6 +365,166 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     ) { notification in
       if let name = notification.userInfo?["name"] as? KeyboardShortcuts.Name, names.contains(name) {
         KeyboardShortcuts.disable(name)
+      }
+    }
+  }
+}
+
+struct QueueContentView: View {
+  @State var queue = QueueClipboard.shared
+  @Default(.queueCyclePaste) var queueCyclePaste
+  @State private var isHoveringClose = false
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      // Header
+      ZStack {
+        HStack {
+            Button(action: { AppState.shared.appDelegate?.queuePanel.close() }) {
+              Image(systemName: isHoveringClose ? "xmark.circle.fill" : "circle.fill")
+                .font(.system(size: 14))
+                .foregroundColor(.red)
+            }
+            .buttonStyle(.plain)
+            .onHover { inside in
+                isHoveringClose = inside
+                if inside {
+                    NSCursor.pointingHand.push()
+                } else {
+                    NSCursor.pop()
+                }
+            }
+            
+            Spacer()
+        }
+        
+        Text("Queue Clipboard")
+          .font(.system(size: 13, weight: .semibold))
+          .frame(maxWidth: .infinity, alignment: .center)
+      }
+      .padding(.horizontal, 12)
+      .padding(.vertical, 10)
+      .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
+
+      // List
+      if queue.items.isEmpty {
+        Spacer()
+        Text("Empty Queue")
+          .foregroundColor(.secondary)
+          .font(.system(size: 12))
+          .frame(maxWidth: .infinity, alignment: .center)
+        Spacer()
+      } else {
+        ScrollView {
+          LazyVStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(queue.items.enumerated()), id: \.element.id) { index, queueItem in
+              QueueItemView(queueItem: queueItem)
+              
+              // No divider
+            }
+          }
+        }
+        .scrollIndicators(.hidden)
+      }
+      
+      // Footer
+      HStack {
+          Button(action: { queueCyclePaste.toggle() }) {
+              Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
+                  .font(.system(size: 18))
+                  .foregroundColor(queueCyclePaste ? .accentColor : .secondary)
+                  .symbolEffect(.bounce, options: .speed(3.0), value: queueCyclePaste)
+          }
+          .buttonStyle(.plain)
+          .help("Cycle Paste")
+          
+          Spacer()
+          
+          Button(action: { queue.clear() }) {
+              Image(systemName: "trash.circle.fill")
+                  .font(.system(size: 18))
+                  .foregroundColor(.secondary)
+          }
+          .buttonStyle(.plain)
+          .help("Clear Queue")
+      }
+      .padding(.horizontal, 16)
+      .padding(.bottom, 12)
+      .padding(.top, 8)
+    }
+    .frame(width: 260, height: 360)
+    .background(
+      ZStack {
+        VisualEffectView()
+      }
+      .ignoresSafeArea()
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 12))
+  }
+}
+
+struct QueueItemView: View {
+  let queueItem: QueueClipboard.QueueItem
+  @State private var isHovering = false
+
+  var body: some View {
+    ZStack(alignment: .trailing) {
+      Button(action: {
+        // 1. Ensure focus goes back to the previous app
+        NSApp.deactivate()
+        
+        // 2. Prepare for internal paste bypass
+        QueueClipboardManager.shared.isInternalPaste = true
+        
+        // 3. Copy the item
+        Clipboard.shared.copy(queueItem.item)
+        
+        // 4. Paste with a slight delay to allow focus switch
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+          Clipboard.shared.paste()
+        }
+      }) {
+        HStack(alignment: .top, spacing: 10) {
+          VStack(alignment: .leading, spacing: 2) {
+            if let image = queueItem.item.image {
+              Image(nsImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: 80, maxHeight: 45)
+                .cornerRadius(4)
+            }
+            Text(queueItem.item.title)
+              .font(.system(size: 12, weight: .medium))
+              .lineLimit(2)
+              .multilineTextAlignment(.leading)
+          }
+          Spacer()
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(isHovering ? Color.primary.opacity(0.08) : Color.clear)
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      
+      if isHovering {
+        Button(action: {
+          QueueClipboard.shared.remove(id: queueItem.id)
+        }) {
+          Image(systemName: "xmark")
+            .foregroundColor(.secondary)
+            .font(.system(size: 9, weight: .bold))
+        }
+        .buttonStyle(.plain)
+        .transition(.opacity)
+        .padding(.trailing, 10)
+      }
+    }
+    .opacity(queueItem.isPasted ? 0.3 : 1.0)
+    .onHover { hovering in
+      withAnimation(.easeInOut(duration: 0.1)) {
+        isHovering = hovering
       }
     }
   }

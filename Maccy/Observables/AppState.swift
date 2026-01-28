@@ -204,6 +204,10 @@ class AppState: Sendable {
     settingsWindowController?.show()
     settingsWindowController?.window?.orderFrontRegardless()
     NSApp.activate(ignoringOtherApps: true)
+    
+    NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: settingsWindowController?.window, queue: nil) { _ in
+      NSApp.setActivationPolicy(.accessory)
+    }
   }
 
   func quit() {
