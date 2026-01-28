@@ -14,6 +14,8 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   var statusBarButton: NSStatusBarButton?
   var closeOnResignKey: Bool = true
   let onClose: () -> Void
+  let sizePersistenceKey: Defaults.Key<NSSize>
+  let positionPersistenceKey: Defaults.Key<NSPoint>
 
   var isMovableExternally: Bool = false
 
@@ -31,10 +33,14 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
     contentRect: NSRect,
     identifier: String = "",
     statusBarButton: NSStatusBarButton? = nil,
+    sizePersistenceKey: Defaults.Key<NSSize> = .windowSize,
+    positionPersistenceKey: Defaults.Key<NSPoint> = .windowPosition,
     onClose: @escaping () -> Void,
     view: () -> Content
   ) {
     self.onClose = onClose
+    self.sizePersistenceKey = sizePersistenceKey
+    self.positionPersistenceKey = positionPersistenceKey
 
     super.init(
         contentRect: contentRect,
@@ -47,7 +53,7 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
     self.statusBarButton = statusBarButton
     self.identifier = NSUserInterfaceItemIdentifier(identifier)
 
-    Defaults[.windowSize] = contentRect.size
+    Defaults[sizePersistenceKey] = contentRect.size
     delegate = self
 
     animationBehavior = .none
@@ -86,7 +92,7 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   }
 
   func open(height: CGFloat, at popupPosition: PopupPosition = Defaults[.popupPosition], makeKey: Bool = true) {
-    setContentSize(NSSize(width: frame.width, height: min(height, Defaults[.windowSize].height)))
+    setContentSize(NSSize(width: frame.width, height: min(height, Defaults[sizePersistenceKey].height)))
     setFrameOrigin(popupPosition.origin(size: frame.size, statusBarButton: statusBarButton))
     orderFrontRegardless()
     if makeKey {
@@ -102,7 +108,7 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   }
 
   func verticallyResize(to newHeight: CGFloat) {
-    var newSize = Defaults[.windowSize]
+    var newSize = Defaults[sizePersistenceKey]
     newSize.height = min(newHeight, newSize.height)
 
     var newOrigin = frame.origin
@@ -118,12 +124,12 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
     if let screenFrame = screen?.visibleFrame {
       let anchorX = frame.minX + frame.width / 2 - screenFrame.minX
       let anchorY = frame.maxY - screenFrame.minY
-      Defaults[.windowPosition] = NSPoint(x: anchorX / screenFrame.width, y: anchorY / screenFrame.height)
+      Defaults[positionPersistenceKey] = NSPoint(x: anchorX / screenFrame.width, y: anchorY / screenFrame.height)
     }
   }
 
   func saveWindowFrame(frame: NSRect) {
-    Defaults[.windowSize] = frame.size
+    Defaults[sizePersistenceKey] = frame.size
     saveWindowPosition()
   }
 
