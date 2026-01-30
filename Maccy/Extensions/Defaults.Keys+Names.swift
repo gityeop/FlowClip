@@ -49,25 +49,20 @@ extension Defaults.Keys {
   static let clearOnQuit = Key<Bool>("clearOnQuit", default: false)
   static let clearSystemClipboard = Key<Bool>("clearSystemClipboard", default: false)
   static let clipboardCheckInterval = Key<Double>("clipboardCheckInterval", default: 0.5)
-  static let enabledPasteboardTypes = Key<Set<NSPasteboard.PasteboardType>>(
-    "enabledPasteboardTypes", default: Set(StorageType.all.types)
-  )
+  static let enabledPasteboardTypes = Key<Set<NSPasteboard.PasteboardType>>("enabledPasteboardTypes", default: Set(StorageType.all.types))
   static let highlightMatch = Key<HighlightMatch>("highlightMatch", default: .bold)
   static let ignoreAllAppsExceptListed = Key<Bool>("ignoreAllAppsExceptListed", default: false)
   static let ignoreEvents = Key<Bool>("ignoreEvents", default: false)
   static let ignoreOnlyNextEvent = Key<Bool>("ignoreOnlyNextEvent", default: false)
   static let ignoreRegexp = Key<[String]>("ignoreRegexp", default: [])
   static let ignoredApps = Key<[String]>("ignoredApps", default: [])
-  static let ignoredPasteboardTypes = Key<Set<String>>(
-    "ignoredPasteboardTypes",
-    default: Set([
-      "Pasteboard generator type",
-      "com.agilebits.onepassword",
-      "com.typeit4me.clipping",
-      "de.petermaurer.TransientPasteboardType",
-      "net.antelle.keeweb"
-    ])
-  )
+  static let ignoredPasteboardTypes = Key<Set<String>>("ignoredPasteboardTypes", default: Set([
+    "Pasteboard generator type",
+    "com.agilebits.onepassword",
+    "com.typeit4me.clipping",
+    "de.petermaurer.TransientPasteboardType",
+    "net.antelle.keeweb"
+  ]))
   static let imageMaxHeight = Key<Int>("imageMaxHeight", default: 40)
   static let lastReviewRequestedAt = Key<Date>("lastReviewRequestedAt", default: Date.now)
   static let menuIcon = Key<MenuIcon>("menuIcon", default: .maccy)
@@ -78,6 +73,7 @@ extension Defaults.Keys {
   static let popupPosition = Key<PopupPosition>("popupPosition", default: .cursor)
   static let popupScreen = Key<Int>("popupScreen", default: 0)
   static let queueCyclePaste = Key<Bool>("queueCyclePaste", default: false)
+  static let queuePasteLifo = Key<Bool>("queuePasteLifo", default: true)
   static let queueSeparator = Key<QueueSeparator>("queueSeparator", default: .none)
   static let previewDelay = Key<Int>("previewDelay", default: 1500)
   static let removeFormattingByDefault = Key<Bool>("removeFormattingByDefault", default: false)
