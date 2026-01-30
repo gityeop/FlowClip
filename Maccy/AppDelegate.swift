@@ -23,7 +23,10 @@ class QueueClipboard {
   }
 
   func nextToPaste() -> HistoryItem? {
-    if let index = items.firstIndex(where: { !$0.isPasted }) {
+    let useLifo = Defaults[.queuePasteLifo]
+
+    // Choose index depending on FIFO / LIFO preference
+    if let index = (useLifo ? items.lastIndex(where: { !$0.isPasted }) : items.firstIndex(where: { !$0.isPasted })) {
       items[index].isPasted = true
 
       // If this was the last item and cycle is on, reset immediately for visual feedback
@@ -35,12 +38,14 @@ class QueueClipboard {
 
       return items[index].item
     } else if Defaults[.queueCyclePaste] && !items.isEmpty {
-      // This case handles pasting when they were already all dimmed
+      // This case handles pasting when they were already all dimmed.
+      // Reset and pick newest or oldest depending on LIFO setting.
       for i in 0..<items.count {
         items[i].isPasted = false
       }
-      items[0].isPasted = true
-      return items[0].item
+      let chosenIndex = useLifo ? (items.count - 1) : 0
+      items[chosenIndex].isPasted = true
+      return items[chosenIndex].item
     }
     return nil
   }
@@ -128,10 +133,10 @@ class QueueClipboardManager {
 }
 
 
-
 struct QueueContentView: View {
   @State private var queue = QueueClipboard.shared
   @Default(.queueCyclePaste) private var queueCyclePaste
+  @Default(.queuePasteLifo) private var queuePasteLifo
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -145,6 +150,12 @@ struct QueueContentView: View {
 
         Toggle(isOn: $queueCyclePaste) {
           Text("Cycle")
+            .font(.system(size: 11))
+        }
+        .toggleStyle(.checkbox)
+
+        Toggle(isOn: $queuePasteLifo) {
+          Text("LIFO")
             .font(.system(size: 11))
         }
         .toggleStyle(.checkbox)
@@ -324,7 +335,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       }
     }
 
-    statusItemVisibilityObserver = observe(\.statusItem.isVisible, options: .new) { _, change in
+    statusItemVisibilityObserver = observe(\.
+statusItem.isVisible, options: .new) { _, change in
       if let newValue = change.newValue, Defaults[.showInStatusBar] != newValue {
         Defaults[.showInStatusBar] = newValue
       }
