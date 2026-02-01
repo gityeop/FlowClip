@@ -23,7 +23,10 @@ class QueueClipboard {
   }
 
   func nextToPaste() -> HistoryItem? {
-    if let index = items.firstIndex(where: { !$0.isPasted }) {
+    let useLifo = Defaults[.queuePasteLifo]
+
+    // Choose index depending on FIFO / LIFO preference
+    if let index = (useLifo ? items.lastIndex(where: { !$0.isPasted }) : items.firstIndex(where: { !$0.isPasted })) {
       items[index].isPasted = true
 
       // If this was the last item and cycle is on, reset immediately for visual feedback
@@ -35,12 +38,14 @@ class QueueClipboard {
 
       return items[index].item
     } else if Defaults[.queueCyclePaste] && !items.isEmpty {
-      // This case handles pasting when they were already all dimmed
+      // It handles pasting when they were already all dimmed.
+      // Reset and pick newest or oldest depending on LIFO setting.
       for i in 0..<items.count {
         items[i].isPasted = false
       }
-      items[0].isPasted = true
-      return items[0].item
+      let chosenIndex = useLifo ? (items.count - 1) : 0
+      items[chosenIndex].isPasted = true
+      return items[chosenIndex].item
     }
     return nil
   }
@@ -270,7 +275,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
        guard !QueueClipboard.shared.items.isEmpty else { return }
        
        let separator = Defaults[.queueSeparator].value ?? ""
-       let itemsText = QueueClipboard.shared.items.compactMap { $0.item.previewableText }.joined(separator: separator) + separator
+       let itemsToPaste = Defaults[.queuePasteLifo] ? QueueClipboard.shared.items.reversed() : QueueClipboard.shared.items
+       let itemsText = itemsToPaste.compactMap { $0.item.previewableText }.joined(separator: separator) + separator
        
        QueueClipboardManager.shared.isInternalPaste = true
        Clipboard.shared.copy(itemsText, fromMaccy: true)
@@ -395,13 +401,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 struct QueueContentView: View {
   @State var queue = QueueClipboard.shared
   @Default(.queueCyclePaste) var queueCyclePaste
+  @Default(.queuePasteLifo) var queuePasteLifo
   @State private var isHoveringClose = false
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 0) {
-      // Header
-      ZStack {
-        HStack {
+    ZStack {
+      VStack(alignment: .leading, spacing: 0) {
+        // Header
+        ZStack {
+          Text("Queue Clipboard")
+            .font(.system(size: 13, weight: .semibold))
+            .frame(maxWidth: .infinity, alignment: .center)
+            
+          HStack {
             Button(action: { AppState.shared.appDelegate?.queuePanel.close() }) {
               Image(systemName: isHoveringClose ? "xmark.circle.fill" : "circle.fill")
                 .font(.system(size: 14))
@@ -409,70 +421,99 @@ struct QueueContentView: View {
             }
             .buttonStyle(.plain)
             .onHover { inside in
-                isHoveringClose = inside
-                if inside {
-                    NSCursor.pointingHand.push()
-                } else {
-                    NSCursor.pop()
-                }
+              isHoveringClose = inside
+              if inside {
+                NSCursor.pointingHand.push()
+              } else {
+                NSCursor.pop()
+              }
             }
             
             Spacer()
-        }
-        
-        Text("Queue Clipboard")
-          .font(.system(size: 13, weight: .semibold))
-          .frame(maxWidth: .infinity, alignment: .center)
-      }
-      .padding(.horizontal, 12)
-      .padding(.vertical, 10)
-      .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
-
-      // List
-      if queue.items.isEmpty {
-        Spacer()
-        Text("Empty Queue")
-          .foregroundColor(.secondary)
-          .font(.system(size: 12))
-          .frame(maxWidth: .infinity, alignment: .center)
-        Spacer()
-      } else {
-        ScrollView {
-          LazyVStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(queue.items.enumerated()), id: \.element.id) { index, queueItem in
-              QueueItemView(queueItem: queueItem)
-              
-              // No divider
-            }
           }
         }
-        .scrollIndicators(.hidden)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
+
+        // List
+        if queue.items.isEmpty {
+          Spacer()
+          Text("Empty Queue")
+            .foregroundColor(.secondary)
+            .font(.system(size: 12))
+            .frame(maxWidth: .infinity, alignment: .center)
+          Spacer()
+        } else {
+          ScrollView {
+            LazyVStack(alignment: .leading, spacing: 0) {
+              ForEach(Array(queue.items.enumerated()), id: \.element.id) { index, queueItem in
+                QueueItemView(queueItem: queueItem)
+              }
+            }
+            // Add padding at bottom so last item isn't covered by floating bar
+            .padding(.bottom, 60)
+          }
+          .scrollIndicators(.hidden)
+        }
       }
       
-      // Footer
-      HStack {
-          Button(action: { queueCyclePaste.toggle() }) {
-              Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
-                  .font(.system(size: 18))
-                  .foregroundColor(queueCyclePaste ? .accentColor : .secondary)
-                  .symbolEffect(.bounce, options: .speed(6.0), value: queueCyclePaste)
+      // Floating Controls (Bottom)
+      VStack {
+        Spacer()
+        HStack {
+          // Left Group: Cycle + LIFO/FIFO
+          HStack(spacing: 12) {
+            Button(action: { queueCyclePaste.toggle() }) {
+              Image(systemName: "arrow.triangle.2.circlepath")
+                .font(.system(size: 14))
+                .foregroundColor(queueCyclePaste ? .accentColor : .primary)
+            }
+            .buttonStyle(.plain)
+            .help("Cycle Paste")
+            
+            Divider()
+              .frame(height: 12)
+            
+            Button(action: { queuePasteLifo.toggle() }) {
+              Text(queuePasteLifo ? "LIFO" : "FIFO")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.accentColor)
+            }
+            .buttonStyle(.plain)
+            .frame(width: 30) // Fixed width to prevent jitter
+            .help("Toggle Paste Order")
           }
-          .buttonStyle(.plain)
-          .help("Cycle Paste")
+          .padding(.horizontal, 12)
+          .padding(.vertical, 8)
+          .background(.regularMaterial, in: Capsule())
+          .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+          .overlay(
+            Capsule()
+              .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+          )
           
           Spacer()
           
+          // Right Button: Clear
           Button(action: { queue.clear() }) {
-              Image(systemName: "trash.circle.fill")
-                  .font(.system(size: 18))
-                  .foregroundColor(.secondary)
+            Image(systemName: "trash")
+              .font(.system(size: 14))
+              .foregroundColor(.red.opacity(0.8))
           }
           .buttonStyle(.plain)
+          .padding(8)
+          .background(.regularMaterial, in: Circle())
+          .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+          .overlay(
+            Circle()
+              .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+          )
           .help("Clear Queue")
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 16)
       }
-      .padding(.horizontal, 16)
-      .padding(.bottom, 12)
-      .padding(.top, 8)
     }
     .frame(minWidth: 260, minHeight: 360)
     .background(

@@ -87,6 +87,7 @@ extension Defaults.Keys {
   static let popupPosition = Key<PopupPosition>("popupPosition", default: .cursor)
   static let popupScreen = Key<Int>("popupScreen", default: 0)
   static let queueCyclePaste = Key<Bool>("queueCyclePaste", default: false)
+  static let queuePasteLifo = Key<Bool>("queuePasteLifo", default: true)
   static let queueSeparator = Key<QueueSeparator>("queueSeparator", default: .custom)
   static let previewDelay = Key<Int>("previewDelay", default: 1500)
   static let removeFormattingByDefault = Key<Bool>("removeFormattingByDefault", default: false)
