@@ -79,13 +79,11 @@ struct HistoryListView: View {
         .background {
           GeometryReader { geo in
             Color.clear
-              .task(id: appState.popup.needsResize) {
+              .task(id: geo.size.height) {
                 try? await Task.sleep(for: .milliseconds(10))
                 guard !Task.isCancelled else { return }
 
-                if appState.popup.needsResize {
-                  appState.popup.resize(height: geo.size.height)
-                }
+                appState.popup.resize(height: geo.size.height)
               }
           }
         }

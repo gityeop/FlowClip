@@ -134,7 +134,9 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   }
 
   func windowWillResize(_ sender: NSWindow, to frameSize: NSSize) -> NSSize {
-    saveWindowFrame(frame: NSRect(origin: frame.origin, size: frameSize))
+    if inLiveResize {
+      saveWindowFrame(frame: NSRect(origin: frame.origin, size: frameSize))
+    }
 
     return frameSize
   }
