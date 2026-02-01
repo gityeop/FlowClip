@@ -6,6 +6,35 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.7</title>
+      <description>
+        <![CDATA[
+          <ul>
+            <li><strong>New Features:</strong>
+              <ul>
+                <li><strong>Queue Clipboard Redesign:</strong> A cleaner, modern look with a floating bottom bar for controls and a separate floating clear button.</li>
+                <li><strong>LIFO/FIFO Toggle:</strong> You can now switch between Last-In-First-Out (LIFO) and First-In-First-Out (FIFO) paste order in the Queue Clipboard.</li>
+              </ul>
+            </li>
+            <li><strong>Improvements:</strong>
+              <ul>
+                <li><strong>Focus Handling:</strong> When using Cmd+C or Cmd+V within the Queue Clipboard, FlowClip now temporarily yields focus to the background app to ensure the action is performed on the correct target.</li>
+              </ul>
+            </li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Mon, 02 Feb 2026 03:57:00 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.7</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.7/FlowClip.zip"
+        sparkle:version="8"
+        sparkle:shortVersionString="1.0.7"
+        length="6892907"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.6</title>
       <description>
         <![CDATA[
