@@ -6,6 +6,36 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.6</title>
+      <description>
+        <![CDATA[
+          <ul>
+            <li><strong>Enhancements:</strong>
+              <ul>
+                <li><strong>Queue Clipboard Redesign:</strong> The Queue Clipboard window has been redesigned for a better user experience.</li>
+                <li><strong>Custom Separator:</strong> Added options to customize the separator when pasting multiple items.</li>
+              </ul>
+            </li>
+            <li><strong>Bug Fixes:</strong>
+              <ul>
+                <li><strong>Window Height:</strong> Fixed unexpected window shrinking; it now respects your preferred size.</li>
+                <li><strong>Settings Window:</strong> Fixed app quitting when closing Settings; now stays in the menu bar.</li>
+              </ul>
+            </li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Sun, 01 Feb 2026 17:15:00 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.6</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.6/FlowClip.zip"
+        sparkle:version="7"
+        sparkle:shortVersionString="1.0.6"
+        length="6878326"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.5</title>
       <description>
         <![CDATA[

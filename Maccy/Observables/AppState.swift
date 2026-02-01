@@ -7,7 +7,7 @@ import Settings
 class AppState: Sendable {
   static let shared = AppState()
 
-  var appDelegate: AppDelegate?
+  weak var appDelegate: AppDelegate?
   var popup: Popup
   var history: History
   var footer: Footer
@@ -199,15 +199,20 @@ class AppState: Sendable {
           }
         ]
       )
+
+      NotificationCenter.default.addObserver(
+        forName: NSWindow.willCloseNotification,
+        object: settingsWindowController?.window,
+        queue: nil
+      ) { _ in
+        NSApp.setActivationPolicy(.accessory)
+      }
     }
+
     NSApp.setActivationPolicy(.regular)
     settingsWindowController?.show()
     settingsWindowController?.window?.orderFrontRegardless()
     NSApp.activate(ignoringOtherApps: true)
-    
-    NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: settingsWindowController?.window, queue: nil) { _ in
-      NSApp.setActivationPolicy(.accessory)
-    }
   }
 
   func quit() {
