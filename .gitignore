@@ -6,3 +6,4 @@ Maccy/.DS_Store
 build/
 node_modules/
 build_debug/
+.agent/
