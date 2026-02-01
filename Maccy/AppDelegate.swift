@@ -78,17 +78,41 @@ class QueueClipboardManager {
           let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
           let flags = event.flags
           let isV = keyCode == Sauce.shared.keyCode(for: .v)
+          let isC = keyCode == Sauce.shared.keyCode(for: .c)
           let isCommand = flags.contains(.maskCommand)
+
+          if isC && isCommand {
+            // If Maccy is active, pass focus to the background app and re-trigger copy
+            if NSApp.isActive {
+              NSApp.deactivate()
+              DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                let source = CGEventSource(stateID: .hidSystemState)
+                let keyDown = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(keyCode), keyDown: true)
+                keyDown?.flags = .maskCommand
+                let keyUp = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(keyCode), keyDown: false)
+                keyUp?.flags = .maskCommand
+                keyDown?.post(tap: .cghidEventTap)
+                keyUp?.post(tap: .cghidEventTap)
+              }
+              return nil
+            }
+          }
 
           if isV && isCommand {
             if QueueClipboardManager.shared.isInternalPaste {
               QueueClipboardManager.shared.isInternalPaste = false
               return Unmanaged.passRetained(event)
             }
+            
+            // If Maccy is active, deactivate first so we paste into the target app
+            if NSApp.isActive {
+               NSApp.deactivate()
+            }
 
             if let item = QueueClipboard.shared.nextToPaste() {
               QueueClipboardManager.shared.isInternalPaste = true
-              DispatchQueue.main.async {
+              DispatchQueue.main.asyncAfter(deadline: .now() + (NSApp.isActive ? 0.2 : 0.0)) { 
+                // Add extra delay if we just deactivated
                 Clipboard.shared.copy(item)
                 Clipboard.shared.paste()
 
