@@ -293,6 +293,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     return true
   }
 
+  func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+    return false
+  }
+
   func applicationWillTerminate(_ notification: Notification) {
     if Defaults[.clearOnQuit] {
       AppState.shared.history.clear()
