@@ -28,3 +28,7 @@
 "system_settings_pane" = "Privacy & Security settings";
 "system_preferences_name" = "System Preferences";
 "system_preferences_pane" = "Security & Privacy preferences";
+"AccessibilityPermissionRequired" = "Accessibility Permission Required";
+"AccessibilityPermissionRequiredMessage" = "FlowClip requires accessibility permission to paste items. Please allow it in System Settings.";
+"OpenSystemSettings" = "Open System Settings";
+"Cancel" = "Cancel";

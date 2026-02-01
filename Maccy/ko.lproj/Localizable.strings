@@ -28,3 +28,7 @@
 "system_settings_pane" = "개인정보 보호 및 보안";
 "system_preferences_name" = "시스템 환경설정에";
 "system_preferences_pane" = "보안 및 개인";
+"AccessibilityPermissionRequired" = "손쉬운 사용 권한 필요";
+"AccessibilityPermissionRequiredMessage" = "FlowClip이 항목을 붙여넣으려면 손쉬운 사용 권한이 필요합니다. 시스템 설정에서 허용해 주세요.";
+"OpenSystemSettings" = "시스템 설정 열기";
+"Cancel" = "취소";

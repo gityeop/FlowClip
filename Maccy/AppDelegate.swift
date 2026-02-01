@@ -279,6 +279,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func toggleQueue() {
+    guard Accessibility.allowed else {
+      let alert = NSAlert()
+      alert.messageText = NSLocalizedString("AccessibilityPermissionRequired", comment: "")
+      alert.informativeText = NSLocalizedString("AccessibilityPermissionRequiredMessage", comment: "")
+      alert.addButton(withTitle: NSLocalizedString("OpenSystemSettings", comment: ""))
+      alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
+      
+      if alert.runModal() == .alertFirstButtonReturn {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+          NSWorkspace.shared.open(url)
+        }
+        Accessibility.check() // Trigger system prompt if needed
+      }
+      return
+    }
+
     if queuePanel.isPresented {
       queuePanel.close()
     } else {
