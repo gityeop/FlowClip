@@ -54,6 +54,10 @@ class QueueClipboard {
     items.removeAll(where: { $0.id == id })
   }
 
+  func move(from source: IndexSet, to destination: Int) {
+    items.move(fromOffsets: source, toOffset: destination)
+  }
+
   func clear() {
     items.removeAll()
   }
@@ -469,15 +473,20 @@ struct QueueContentView: View {
             .frame(maxWidth: .infinity, alignment: .center)
           Spacer()
         } else {
-          ScrollView {
-            LazyVStack(alignment: .leading, spacing: 0) {
-              ForEach(Array(queue.items.enumerated()), id: \.element.id) { index, queueItem in
-                QueueItemView(queueItem: queueItem)
-              }
+          List {
+            ForEach(queue.items) { queueItem in
+              QueueItemView(queueItem: queueItem)
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
             }
-            // Add padding at bottom so last item isn't covered by floating bar
-            .padding(.bottom, 60)
+            .onMove { indices, newOffset in
+              queue.move(from: indices, to: newOffset)
+            }
           }
+          .listStyle(.plain)
+          .scrollContentBackground(.hidden)
+          .padding(.bottom, 60)
           .scrollIndicators(.hidden)
         }
       }
@@ -556,7 +565,28 @@ struct QueueItemView: View {
 
   var body: some View {
     ZStack(alignment: .trailing) {
-      Button(action: {
+      HStack(alignment: .top, spacing: 10) {
+        VStack(alignment: .leading, spacing: 2) {
+          if let image = queueItem.item.image {
+            Image(nsImage: image)
+              .resizable()
+              .aspectRatio(contentMode: .fit)
+              .frame(maxWidth: 80, maxHeight: 45)
+              .cornerRadius(4)
+          }
+          Text(queueItem.item.title)
+            .font(.system(size: 12, weight: .medium))
+            .lineLimit(2)
+            .multilineTextAlignment(.leading)
+        }
+        Spacer()
+      }
+      .padding(.horizontal, 10)
+      .padding(.vertical, 8)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(isHovering ? Color.primary.opacity(0.08) : Color.clear)
+      .contentShape(Rectangle())
+      .onTapGesture {
         // 1. Ensure focus goes back to the previous app
         NSApp.deactivate()
         
@@ -570,30 +600,7 @@ struct QueueItemView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
           Clipboard.shared.paste()
         }
-      }) {
-        HStack(alignment: .top, spacing: 10) {
-          VStack(alignment: .leading, spacing: 2) {
-            if let image = queueItem.item.image {
-              Image(nsImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(maxWidth: 80, maxHeight: 45)
-                .cornerRadius(4)
-            }
-            Text(queueItem.item.title)
-              .font(.system(size: 12, weight: .medium))
-              .lineLimit(2)
-              .multilineTextAlignment(.leading)
-          }
-          Spacer()
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(isHovering ? Color.primary.opacity(0.08) : Color.clear)
-        .contentShape(Rectangle())
       }
-      .buttonStyle(.plain)
       
       if isHovering {
         Button(action: {
