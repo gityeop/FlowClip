@@ -6,6 +6,29 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.8</title>
+      <description>
+        <![CDATA[
+          <ul>
+            <li><strong>New Features:</strong>
+              <ul>
+                <li><strong>Queue Reordering:</strong> You can now drag and drop items in the Queue Clipboard to reorder them before pasting.</li>
+              </ul>
+            </li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Fri, 06 Feb 2026 21:40:00 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.8</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.8/FlowClip.zip"
+        sparkle:version="9"
+        sparkle:shortVersionString="1.0.8"
+        length="6862074"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.7</title>
       <description>
         <![CDATA[
