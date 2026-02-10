@@ -7,4 +7,6 @@ extension KeyboardShortcuts.Name {
   static let queue = Self("queue", default: Shortcut(.v, modifiers: [.option, .shift]))
   static let queueClear = Self("queueClear", default: Shortcut(.delete, modifiers: [.option, .shift]))
   static let queuePasteAll = Self("queuePasteAll")
+  static let queueToggleSplit = Self("queueToggleSplit")
+  static let queueTogglePasteOrder = Self("queueTogglePasteOrder")
 }

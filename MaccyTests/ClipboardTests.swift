@@ -25,11 +25,14 @@ class ClipboardTests: XCTestCase {
   let savedIgnoreAllAppsExceptListed = Defaults[.ignoreAllAppsExceptListed]
   let savedIgnoredApps = Defaults[.ignoredApps]
   let savedIgnoredPasteboardTypes = Defaults[.ignoredPasteboardTypes]
+  let savedRemoveFormattingByDefault = Defaults[.removeFormattingByDefault]
+  let savedQueueAutoSplitText = Defaults[.queueAutoSplitText]
 
   override func setUp() {
     super.setUp()
     Defaults[.ignoreAllAppsExceptListed] = false
     Defaults[.ignoreEvents] = false
+    QueueClipboard.shared.clear()
   }
 
   override func tearDown() {
@@ -40,6 +43,9 @@ class ClipboardTests: XCTestCase {
     Defaults[.ignoreAllAppsExceptListed] = savedIgnoreAllAppsExceptListed
     Defaults[.ignoredApps] = savedIgnoredApps
     Defaults[.ignoredPasteboardTypes] = savedIgnoredPasteboardTypes
+    Defaults[.removeFormattingByDefault] = savedRemoveFormattingByDefault
+    Defaults[.queueAutoSplitText] = savedQueueAutoSplitText
+    QueueClipboard.shared.clear()
     clipboard.clearHooks()
   }
 
@@ -241,6 +247,57 @@ class ClipboardTests: XCTestCase {
     XCTAssertEqual(pasteboard.string(forType: .source), "com.foo.bar")
     XCTAssertEqual(pasteboard.string(forType: .fileURL), "file://foo.bar")
     XCTAssertNil(pasteboard.data(forType: .rtf))
+  }
+
+  func testQueueTextSplitterSplitsBulletListBySingleNewline() {
+    let result = QueueTextSplitter.split(text: "- one\n- two\n- three")
+    XCTAssertEqual(result, ["- one", "- two", "- three"])
+  }
+
+  func testQueueTextSplitterSplitsParagraphsByBlankLine() {
+    let result = QueueTextSplitter.split(text: "First paragraph.\nStill first.\n\nSecond paragraph.")
+    XCTAssertEqual(result, ["First paragraph.", "Still first.", "Second paragraph."])
+  }
+
+  func testQueueTextSplitterSplitsLikelyWrappedParagraphOnSingleNewline() {
+    let result = QueueTextSplitter.split(text: "This is a wrapped paragraph\nand it should stay as one item.")
+    XCTAssertEqual(result, ["This is a wrapped paragraph", "and it should stay as one item."])
+  }
+
+  func testQueueClipboardAutoSplitAddsMultipleItems() {
+    Defaults[.queueAutoSplitText] = true
+
+    let item = HistoryItem(contents: [
+      HistoryItemContent(type: stringType.rawValue, value: "- one\n- two\n- three".data(using: .utf8)!)
+    ])
+    item.title = item.generateTitle()
+
+    QueueClipboard.shared.addFromClipboard(item)
+
+    XCTAssertEqual(QueueClipboard.shared.items.count, 3)
+    XCTAssertEqual(QueueClipboard.shared.items.compactMap { $0.item.text }, ["- one", "- two", "- three"])
+  }
+
+  @MainActor
+  func testQueuePasteCopyRespectsRemoveFormattingPreference() {
+    let item = HistoryItem(contents: [
+      HistoryItemContent(type: stringType.rawValue, value: "foo".data(using: .utf8)!),
+      HistoryItemContent(type: rtfType.rawValue,
+                         value: coloredString.rtf(
+                           from: NSRange(location: 0, length: coloredString.length),
+                           documentAttributes: [:]
+                         ))
+    ])
+
+    Defaults[.removeFormattingByDefault] = true
+    clipboard.copy(item, removeFormatting: Defaults[.removeFormattingByDefault])
+    XCTAssertEqual(pasteboard.string(forType: .string), "foo")
+    XCTAssertNil(pasteboard.data(forType: .rtf))
+
+    Defaults[.removeFormattingByDefault] = false
+    clipboard.copy(item, removeFormatting: Defaults[.removeFormattingByDefault])
+    XCTAssertEqual(pasteboard.string(forType: .string), "foo")
+    XCTAssertNotNil(pasteboard.data(forType: .rtf))
   }
 
   func testHandlesItemsWithoutData() {

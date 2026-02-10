@@ -21,7 +21,7 @@ struct GeneralSettingsPane: View {
   @State private var updater = SoftwareUpdater()
 
   var body: some View {
-    Settings.Container(contentWidth: 450) {
+    Settings.Container(contentWidth: 520) {
       Settings.Section(title: "", bottomDivider: true) {
         LaunchAtLogin.Toggle {
           Text("LaunchAtLogin", tableName: "GeneralSettings")
@@ -72,10 +72,22 @@ struct GeneralSettingsPane: View {
       }
       
       Settings.Section(
-        bottomDivider: true,
         label: { Text("Paste All:", tableName: "GeneralSettings") }
       ) {
         KeyboardShortcuts.Recorder(for: .queuePasteAll)
+      }
+
+      Settings.Section(
+        label: { Text("ToggleQueueAutoSplit", tableName: "GeneralSettings") }
+      ) {
+        KeyboardShortcuts.Recorder(for: .queueToggleSplit)
+      }
+
+      Settings.Section(
+        bottomDivider: true,
+        label: { Text("ToggleQueueOrder", tableName: "GeneralSettings") }
+      ) {
+        KeyboardShortcuts.Recorder(for: .queueTogglePasteOrder)
       }
 
       Settings.Section(
@@ -99,13 +111,18 @@ struct GeneralSettingsPane: View {
           Text("PasteAutomatically", tableName: "GeneralSettings")
         }
         .onChange(refreshModifiers)
-        .fixedSize()
+        .fixedSize(horizontal: false, vertical: true)
 
         Defaults.Toggle(key: .removeFormattingByDefault) {
           Text("PasteWithoutFormatting", tableName: "GeneralSettings")
         }
         .onChange(refreshModifiers)
-        .fixedSize()
+        .fixedSize(horizontal: false, vertical: true)
+
+        Defaults.Toggle(key: .queueAutoSplitText) {
+          Text("QueueAutoSplitCopiedText", tableName: "GeneralSettings")
+        }
+        .fixedSize(horizontal: false, vertical: true)
 
         Text(String(
           format: NSLocalizedString("Modifiers", tableName: "GeneralSettings", comment: ""),
@@ -115,36 +132,37 @@ struct GeneralSettingsPane: View {
         .foregroundStyle(.gray)
         .controlSize(.small)
 
-        HStack(alignment: .firstTextBaseline) {
+        VStack(alignment: .leading, spacing: 6) {
           Text("QueuePasteSeparator", tableName: "GeneralSettings")
-          VStack(alignment: .leading) {
-            Picker("", selection: $queueSeparator) {
-              ForEach(QueueSeparator.allCases) { separator in
-                Text(separator.description)
-              }
-            }
-            .labelsHidden()
-            .frame(width: 154)
-
-            if queueSeparator == .custom {
-              HStack(spacing: 5) {
-                TextField("", text: $customQueueSeparator)
-                  .frame(width: 124)
-                  .padding(.leading, 4)
-                Button(action: { showCustomHelp.toggle() }) {
-                    Image(systemName: "questionmark.circle")
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.borderless)
-                .popover(isPresented: $showCustomHelp) {
-                    Text(NSLocalizedString("CustomSeparatorTooltip", tableName: "GeneralSettings", comment: ""))
-                        .padding()
-                }
-              }
+          Picker("", selection: $queueSeparator) {
+            ForEach(QueueSeparator.allCases) { separator in
+              Text(separator.description)
             }
           }
+          .labelsHidden()
+          .frame(width: 180, alignment: .leading)
+
+          if queueSeparator == .custom {
+            HStack(spacing: 6) {
+              TextField("", text: $customQueueSeparator)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 180)
+                .padding(.leading, 4)
+              Button(action: { showCustomHelp.toggle() }) {
+                Image(systemName: "questionmark.circle")
+                  .font(.body)
+                  .foregroundColor(.secondary)
+              }
+              .buttonStyle(.borderless)
+              .popover(isPresented: $showCustomHelp) {
+                Text(NSLocalizedString("CustomSeparatorTooltip", tableName: "GeneralSettings", comment: ""))
+                  .padding()
+              }
+            }
+            .frame(width: 220, alignment: .leading)
+          }
         }
+        .frame(width: 220, alignment: .leading)
       }
 
 

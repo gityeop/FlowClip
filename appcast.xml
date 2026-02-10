@@ -6,6 +6,41 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.9</title>
+      <description>
+        <![CDATA[
+          <ul>
+            <li><strong>New Features:</strong>
+              <ul>
+                <li><strong>Queue Auto-Split:</strong> Copied multi-line text can now be automatically split into separate queue items, including single newline-separated lines.</li>
+                <li><strong>Queue Controls:</strong> Added a dedicated Auto-Split toggle button in Queue Clipboard controls and shortcut options for Auto-Split and LIFO/FIFO order toggling.</li>
+              </ul>
+            </li>
+            <li><strong>Improvements:</strong>
+              <ul>
+                <li><strong>Audio Feedback:</strong> Queue toggles and clear action now play consistent Morse sound feedback.</li>
+              </ul>
+            </li>
+            <li><strong>Bug Fixes:</strong>
+              <ul>
+                <li><strong>Paste Without Formatting:</strong> Queue paste now correctly respects the plain-text paste preference.</li>
+                <li><strong>General Settings Layout:</strong> Fixed clipping/overflow issues in behavior and custom separator controls in localized UI.</li>
+              </ul>
+            </li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Wed, 11 Feb 2026 03:28:49 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.9</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.9/FlowClip.zip"
+        sparkle:version="10"
+        sparkle:shortVersionString="1.0.9"
+        length="6908309"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.8</title>
       <description>
         <![CDATA[

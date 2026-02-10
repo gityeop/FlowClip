@@ -8,9 +8,15 @@
 "PinTooltip" = "Shortcut key to pin history item.\nDefault: ⌥P.";
 "Delete" = "Delete:";
 "DeleteTooltip" = "Shortcut key to delete history item.\nDefault: ⌥⌫.";
+"Open Queue:" = "Open Queue:";
+"Clear Queue:" = "Clear Queue:";
+"Paste All:" = "Paste All:";
+"ToggleQueueAutoSplit" = "Auto-Split Key:";
+"ToggleQueueOrder" = "Queue Order Key:";
 "Behavior" = "Behavior:";
 "PasteAutomatically" = "Paste automatically";
 "PasteWithoutFormatting" = "Paste without formatting";
+"QueueAutoSplitCopiedText" = "Auto-split copied text into queue items";
 "Modifiers" = "Customize the behavior when selecting item:\n• Select with %@ pressed to copy item.\n• Select with %@ pressed to copy and paste item.\n• Select with %@ pressed to copy, clear formatting, and paste item.";
 "Search" = "Search:";
 "Exact" = "Exact";

@@ -22,6 +22,31 @@ class QueueClipboard {
     items.append(QueueItem(item: item))
   }
 
+  func addFromClipboard(_ item: HistoryItem) {
+    guard Defaults[.queueAutoSplitText] else {
+      add(item)
+      return
+    }
+
+    let splitItems = QueueTextSplitter.split(item: item)
+    guard splitItems.count > 1 else {
+      add(item)
+      return
+    }
+
+    splitItems.forEach { splitText in
+      let queueItem = HistoryItem(contents: [
+        HistoryItemContent(
+          type: NSPasteboard.PasteboardType.string.rawValue,
+          value: Data(splitText.utf8)
+        )
+      ])
+      queueItem.application = item.application
+      queueItem.title = queueItem.generateTitle()
+      add(queueItem)
+    }
+  }
+
   func nextToPaste() -> HistoryItem? {
     let useLifo = Defaults[.queuePasteLifo]
 
@@ -61,6 +86,58 @@ class QueueClipboard {
   func clear() {
     items.removeAll()
   }
+}
+
+enum QueueTextSplitter {
+  static func split(item: HistoryItem) -> [String] {
+    guard let text = extractedText(from: item) else {
+      return []
+    }
+
+    return split(text: text)
+  }
+
+  static func split(text: String) -> [String] {
+    let normalized = normalize(text)
+    guard normalized.contains("\n") else {
+      return [normalized]
+    }
+
+    let lines = normalized
+      .components(separatedBy: .newlines)
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+      .filter { !$0.isEmpty }
+
+    return lines.count > 1 ? lines : [normalized]
+  }
+
+  private static func extractedText(from item: HistoryItem) -> String? {
+    if let text = item.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
+      return text
+    }
+
+    if !item.fileURLs.isEmpty || item.image != nil {
+      return nil
+    }
+
+    if let text = item.rtf?.string.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
+      return text
+    }
+
+    if let text = item.html?.string.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
+      return text
+    }
+
+    return nil
+  }
+
+  private static func normalize(_ text: String) -> String {
+    return text
+      .replacingOccurrences(of: "\r\n", with: "\n")
+      .replacingOccurrences(of: "\r", with: "\n")
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
 }
 
 class QueueClipboardManager {
@@ -117,7 +194,7 @@ class QueueClipboardManager {
               QueueClipboardManager.shared.isInternalPaste = true
               DispatchQueue.main.asyncAfter(deadline: .now() + (NSApp.isActive ? 0.2 : 0.0)) { 
                 // Add extra delay if we just deactivated
-                Clipboard.shared.copy(item)
+                Clipboard.shared.copy(item, removeFormatting: Defaults[.removeFormattingByDefault])
                 Clipboard.shared.paste()
 
                 // Paste separator if configured
@@ -203,7 +280,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       if QueueClipboard.shared.isModeActive {
         // Ignore items already in Maccy or those we just put for pasting
         if !item.fromMaccy {
-          QueueClipboard.shared.add(item)
+          QueueClipboard.shared.addFromClipboard(item)
         }
       } else {
         History.shared.add(item)
@@ -297,6 +374,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     KeyboardShortcuts.onKeyDown(for: .queueClear) {
       QueueClipboard.shared.clear()
+      NSSound.playMorseFeedback()
     }
     
     KeyboardShortcuts.onKeyDown(for: .queuePasteAll) {
@@ -309,6 +387,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
        QueueClipboardManager.shared.isInternalPaste = true
        Clipboard.shared.copy(itemsText, fromMaccy: true)
        Clipboard.shared.paste()
+    }
+
+    KeyboardShortcuts.onKeyDown(for: .queueToggleSplit) {
+      Defaults[.queueAutoSplitText].toggle()
+      NSSound.playMorseFeedback()
+    }
+
+    KeyboardShortcuts.onKeyDown(for: .queueTogglePasteOrder) {
+      Defaults[.queuePasteLifo].toggle()
+      NSSound.playMorseFeedback()
     }
   }
 
@@ -430,7 +518,23 @@ struct QueueContentView: View {
   @State var queue = QueueClipboard.shared
   @Default(.queueCyclePaste) var queueCyclePaste
   @Default(.queuePasteLifo) var queuePasteLifo
+  @Default(.queueAutoSplitText) var queueAutoSplitText
   @State private var isHoveringClose = false
+
+  private func toggleCyclePaste() {
+    queueCyclePaste.toggle()
+    NSSound.playMorseFeedback()
+  }
+
+  private func togglePasteOrder() {
+    queuePasteLifo.toggle()
+    NSSound.playMorseFeedback()
+  }
+
+  private func toggleAutoSplitText() {
+    queueAutoSplitText.toggle()
+    NSSound.playMorseFeedback()
+  }
 
   var body: some View {
     ZStack {
@@ -497,18 +601,29 @@ struct QueueContentView: View {
         HStack {
           // Left Group: Cycle + LIFO/FIFO
           HStack(spacing: 12) {
-            Button(action: { queueCyclePaste.toggle() }) {
+            Button(action: toggleCyclePaste) {
               Image(systemName: "arrow.triangle.2.circlepath")
                 .font(.system(size: 14))
                 .foregroundColor(queueCyclePaste ? .accentColor : .primary)
             }
             .buttonStyle(.plain)
             .help("Cycle Paste")
-            
+
             Divider()
               .frame(height: 12)
-            
-            Button(action: { queuePasteLifo.toggle() }) {
+
+            Button(action: toggleAutoSplitText) {
+              Image(systemName: "list.bullet.indent")
+                .font(.system(size: 14))
+                .foregroundColor(queueAutoSplitText ? .accentColor : .primary)
+            }
+            .buttonStyle(.plain)
+            .help("Auto-Split Queue Items")
+
+            Divider()
+              .frame(height: 12)
+
+            Button(action: togglePasteOrder) {
               Text(queuePasteLifo ? "LIFO" : "FIFO")
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundColor(.accentColor)
@@ -529,7 +644,10 @@ struct QueueContentView: View {
           Spacer()
           
           // Right Button: Clear
-          Button(action: { queue.clear() }) {
+          Button(action: {
+            queue.clear()
+            NSSound.playMorseFeedback()
+          }) {
             Image(systemName: "trash")
               .font(.system(size: 14))
               .foregroundColor(.red.opacity(0.8))
@@ -594,7 +712,7 @@ struct QueueItemView: View {
         QueueClipboardManager.shared.isInternalPaste = true
         
         // 3. Copy the item
-        Clipboard.shared.copy(queueItem.item)
+        Clipboard.shared.copy(queueItem.item, removeFormatting: Defaults[.removeFormattingByDefault])
         
         // 4. Paste with a slight delay to allow focus switch
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
