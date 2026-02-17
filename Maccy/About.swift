@@ -1,17 +1,10 @@
 import Cocoa
 
 class About {
-  private let familyCredits = NSAttributedString(
-    string: "Special thank you to Tonia, Anna & Guy! ❤️",
+  private let feedbackMessage = NSAttributedString(
+    string: "Thanks for using FlowClip.\nWe'd love to hear your feedback.",
     attributes: [NSAttributedString.Key.foregroundColor: NSColor.labelColor]
   )
-
-  private var kossCredits: NSMutableAttributedString {
-    let string = NSMutableAttributedString(string: "Kudos to Sasha Koss for help! 🏂",
-                                           attributes: [NSAttributedString.Key.foregroundColor: NSColor.labelColor])
-    string.addAttribute(.link, value: "https://koss.nocorp.me", range: NSRange(location: 9, length: 10))
-    return string
-  }
 
   private var links: NSMutableAttributedString {
     let string = NSMutableAttributedString(string: "Website│GitHub│Support",
@@ -27,9 +20,7 @@ class About {
                                             attributes: [NSAttributedString.Key.foregroundColor: NSColor.labelColor])
     credits.append(links)
     credits.append(NSAttributedString(string: "\n\n"))
-    credits.append(kossCredits)
-    credits.append(NSAttributedString(string: "\n"))
-    credits.append(familyCredits)
+    credits.append(feedbackMessage)
     credits.setAlignment(.center, range: NSRange(location: 0, length: credits.length))
     return credits
   }
