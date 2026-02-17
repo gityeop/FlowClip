@@ -6,6 +6,35 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.10</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li><strong>Improvements:</strong>
+    <ul>
+      <li>Improved click behavior in Queue Clipboard controls so interactions feel more forgiving.</li>
+    </ul>
+  </li>
+  <li><strong>Bug Fixes:</strong>
+    <ul>
+      <li>Fixed a panel focus issue where clicking controls or items could require an extra click when the panel was not focused.</li>
+      <li>Fixed Queue Clipboard control interaction so segmented control areas are easier to click without changing the visual design.</li>
+    </ul>
+  </li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Tue, 17 Feb 2026 23:59:42 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.10</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.10/FlowClip.zip"
+        sparkle:version="11"
+        sparkle:shortVersionString="1.0.10"
+        length="6918140"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.9</title>
       <description>
         <![CDATA[
