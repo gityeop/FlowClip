@@ -161,4 +161,18 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   override var canBecomeKey: Bool {
     return true
   }
+
+  override func sendEvent(_ event: NSEvent) {
+    switch event.type {
+    case .leftMouseDown, .rightMouseDown, .otherMouseDown:
+      // Ensure the first click is delivered to controls even when the panel is not key.
+      if !isKeyWindow {
+        makeKey()
+      }
+    default:
+      break
+    }
+
+    super.sendEvent(event)
+  }
 }
