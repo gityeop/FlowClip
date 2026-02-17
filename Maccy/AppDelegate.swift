@@ -5,10 +5,11 @@ import SwiftUI
 import Sauce
 import Observation
 
-private extension View {
-  // Expand button hit testing without changing layout or visuals.
-  func queueExpandedHitArea(_ inset: CGFloat = 8) -> some View {
-    contentShape(Rectangle().inset(by: -inset))
+private struct QueueControlDividerMidpointsPreferenceKey: PreferenceKey {
+  static var defaultValue: [CGFloat] = []
+
+  static func reduce(value: inout [CGFloat], nextValue: () -> [CGFloat]) {
+    value.append(contentsOf: nextValue())
   }
 }
 
@@ -614,11 +615,18 @@ struct QueueContentView: View {
                 .foregroundColor(queueCyclePaste ? .accentColor : .primary)
             }
             .buttonStyle(.plain)
-            .queueExpandedHitArea()
             .help("Cycle Paste")
 
             Divider()
               .frame(height: 12)
+              .background {
+                GeometryReader { proxy in
+                  Color.clear.preference(
+                    key: QueueControlDividerMidpointsPreferenceKey.self,
+                    value: [proxy.frame(in: .named("queue-control-space")).midX]
+                  )
+                }
+              }
 
             Button(action: toggleAutoSplitText) {
               Image(systemName: "list.bullet.indent")
@@ -626,11 +634,18 @@ struct QueueContentView: View {
                 .foregroundColor(queueAutoSplitText ? .accentColor : .primary)
             }
             .buttonStyle(.plain)
-            .queueExpandedHitArea()
             .help("Auto-Split Queue Items")
 
             Divider()
               .frame(height: 12)
+              .background {
+                GeometryReader { proxy in
+                  Color.clear.preference(
+                    key: QueueControlDividerMidpointsPreferenceKey.self,
+                    value: [proxy.frame(in: .named("queue-control-space")).midX]
+                  )
+                }
+              }
 
             Button(action: togglePasteOrder) {
               Text(queuePasteLifo ? "LIFO" : "FIFO")
@@ -638,14 +653,38 @@ struct QueueContentView: View {
                 .foregroundColor(.accentColor)
             }
             .buttonStyle(.plain)
-            .queueExpandedHitArea()
             .frame(width: 30) // Fixed width to prevent jitter
             .help("Toggle Paste Order")
           }
           .padding(.horizontal, 12)
           .padding(.vertical, 8)
+          .coordinateSpace(name: "queue-control-space")
           .background(.regularMaterial, in: Capsule())
           .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+          .overlayPreferenceValue(QueueControlDividerMidpointsPreferenceKey.self) { points in
+            GeometryReader { proxy in
+              let sortedPoints = points.sorted()
+              let firstDividerX = sortedPoints.first ?? proxy.size.width / 3
+              let secondDividerX = sortedPoints.count > 1 ? sortedPoints[1] : proxy.size.width * 2 / 3
+
+              HStack(spacing: 0) {
+                Color.clear
+                  .frame(width: max(0, firstDividerX))
+                  .contentShape(Rectangle())
+                  .onTapGesture(perform: toggleCyclePaste)
+
+                Color.clear
+                  .frame(width: max(0, secondDividerX - firstDividerX))
+                  .contentShape(Rectangle())
+                  .onTapGesture(perform: toggleAutoSplitText)
+
+                Color.clear
+                  .frame(maxWidth: .infinity)
+                  .contentShape(Rectangle())
+                  .onTapGesture(perform: togglePasteOrder)
+              }
+            }
+          }
           .overlay(
             Capsule()
               .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
