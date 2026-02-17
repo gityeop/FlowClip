@@ -5,6 +5,13 @@ import SwiftUI
 import Sauce
 import Observation
 
+private extension View {
+  // Expand button hit testing without changing layout or visuals.
+  func queueExpandedHitArea(_ inset: CGFloat = 8) -> some View {
+    contentShape(Rectangle().inset(by: -inset))
+  }
+}
+
 @Observable
 class QueueClipboard {
   static let shared = QueueClipboard()
@@ -607,6 +614,7 @@ struct QueueContentView: View {
                 .foregroundColor(queueCyclePaste ? .accentColor : .primary)
             }
             .buttonStyle(.plain)
+            .queueExpandedHitArea()
             .help("Cycle Paste")
 
             Divider()
@@ -618,6 +626,7 @@ struct QueueContentView: View {
                 .foregroundColor(queueAutoSplitText ? .accentColor : .primary)
             }
             .buttonStyle(.plain)
+            .queueExpandedHitArea()
             .help("Auto-Split Queue Items")
 
             Divider()
@@ -629,6 +638,7 @@ struct QueueContentView: View {
                 .foregroundColor(.accentColor)
             }
             .buttonStyle(.plain)
+            .queueExpandedHitArea()
             .frame(width: 30) // Fixed width to prevent jitter
             .help("Toggle Paste Order")
           }
