@@ -71,11 +71,11 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
     standardWindowButton(.zoomButton)?.isHidden = true
 
 
-     contentView = CustomHostingView(
+    contentView = CustomHostingView(
       rootView: view()
         // The safe area is ignored because the title bar still interferes with the geometry
         .ignoresSafeArea()
-        .gesture(DragGesture()
+        .simultaneousGesture(DragGesture()
           .onEnded { _ in
             self.saveWindowPosition()
         })

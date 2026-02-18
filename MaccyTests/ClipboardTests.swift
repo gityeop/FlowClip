@@ -49,6 +49,14 @@ class ClipboardTests: XCTestCase {
     clipboard.clearHooks()
   }
 
+  private func makeQueueHistoryItem(_ text: String) -> HistoryItem {
+    let item = HistoryItem(contents: [
+      HistoryItemContent(type: stringType.rawValue, value: text.data(using: .utf8)!)
+    ])
+    item.title = item.generateTitle()
+    return item
+  }
+
   func testChangesListenerAndAddHooks() {
     let hookExpectation = expectation(description: "Hook is called")
     clipboard.onNewCopy({ (_: HistoryItem) in
@@ -276,6 +284,28 @@ class ClipboardTests: XCTestCase {
 
     XCTAssertEqual(QueueClipboard.shared.items.count, 3)
     XCTAssertEqual(QueueClipboard.shared.items.compactMap { $0.item.text }, ["- one", "- two", "- three"])
+  }
+
+  func testQueueClipboardMoveBeforeItemReordersItems() {
+    QueueClipboard.shared.add(makeQueueHistoryItem("one"))
+    QueueClipboard.shared.add(makeQueueHistoryItem("two"))
+    QueueClipboard.shared.add(makeQueueHistoryItem("three"))
+
+    let queueItemIDs = QueueClipboard.shared.items.map(\.id)
+    QueueClipboard.shared.move(itemWithID: queueItemIDs[2], beforeItemWithID: queueItemIDs[0])
+
+    XCTAssertEqual(QueueClipboard.shared.items.compactMap { $0.item.text }, ["three", "one", "two"])
+  }
+
+  func testQueueClipboardMoveToEndMovesItemToLastPosition() {
+    QueueClipboard.shared.add(makeQueueHistoryItem("one"))
+    QueueClipboard.shared.add(makeQueueHistoryItem("two"))
+    QueueClipboard.shared.add(makeQueueHistoryItem("three"))
+
+    let firstID = QueueClipboard.shared.items[0].id
+    QueueClipboard.shared.moveToEnd(itemWithID: firstID)
+
+    XCTAssertEqual(QueueClipboard.shared.items.compactMap { $0.item.text }, ["two", "three", "one"])
   }
 
   @MainActor

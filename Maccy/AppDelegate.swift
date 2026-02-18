@@ -4,6 +4,7 @@ import Sparkle
 import SwiftUI
 import Sauce
 import Observation
+import UniformTypeIdentifiers
 
 private struct QueueControlDividerMidpointsPreferenceKey: PreferenceKey {
   static var defaultValue: [CGFloat] = []
@@ -89,6 +90,25 @@ class QueueClipboard {
 
   func move(from source: IndexSet, to destination: Int) {
     items.move(fromOffsets: source, toOffset: destination)
+  }
+
+  func move(itemWithID sourceID: UUID, beforeItemWithID destinationID: UUID) {
+    guard sourceID != destinationID,
+          let sourceIndex = items.firstIndex(where: { $0.id == sourceID }),
+          let destinationIndex = items.firstIndex(where: { $0.id == destinationID }) else {
+      return
+    }
+
+    let newOffset = destinationIndex > sourceIndex ? destinationIndex + 1 : destinationIndex
+    items.move(fromOffsets: IndexSet(integer: sourceIndex), toOffset: newOffset)
+  }
+
+  func moveToEnd(itemWithID id: UUID) {
+    guard let sourceIndex = items.firstIndex(where: { $0.id == id }) else {
+      return
+    }
+
+    items.move(fromOffsets: IndexSet(integer: sourceIndex), toOffset: items.count)
   }
 
   func clear() {
@@ -371,7 +391,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       QueueContentView()
     }
     queuePanel.level = NSWindow.Level.floating // Ensure it's always on top
-    queuePanel.isMovableByWindowBackground = true
+    queuePanel.isMovableByWindowBackground = false
     queuePanel.isMovableExternally = true
     queuePanel.closeOnResignKey = false // Keep open when focus is lost
     queuePanel.hidesOnDeactivate = false
@@ -528,6 +548,7 @@ struct QueueContentView: View {
   @Default(.queuePasteLifo) var queuePasteLifo
   @Default(.queueAutoSplitText) var queueAutoSplitText
   @State private var isHoveringClose = false
+  @State private var draggingQueueItemID: UUID?
 
   private func toggleCyclePaste() {
     queueCyclePaste.toggle()
@@ -549,6 +570,10 @@ struct QueueContentView: View {
       VStack(alignment: .leading, spacing: 0) {
         // Header
         ZStack {
+          QueueWindowDragHandleView()
+            .frame(maxWidth: .infinity)
+            .frame(height: 22)
+
           Text("Queue Clipboard")
             .font(.system(size: 13, weight: .semibold))
             .frame(maxWidth: .infinity, alignment: .center)
@@ -585,20 +610,36 @@ struct QueueContentView: View {
             .frame(maxWidth: .infinity, alignment: .center)
           Spacer()
         } else {
-          List {
-            ForEach(queue.items) { queueItem in
-              QueueItemView(queueItem: queueItem)
-                .listRowInsets(EdgeInsets())
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
+          ScrollView {
+            LazyVStack(alignment: .leading, spacing: 0) {
+              ForEach(queue.items) { queueItem in
+                QueueItemView(queueItem: queueItem)
+                  .onDrag {
+                    draggingQueueItemID = queueItem.id
+                    return NSItemProvider(object: queueItem.id.uuidString as NSString)
+                  }
+                  .onDrop(
+                    of: [UTType.text],
+                    delegate: QueueItemReorderDropDelegate(
+                      targetItemID: queueItem.id,
+                      queue: queue,
+                      draggingQueueItemID: $draggingQueueItemID
+                    )
+                  )
+              }
+
+              Color.clear
+                .frame(height: 16)
+                .onDrop(
+                  of: [UTType.text],
+                  delegate: QueueReorderToEndDropDelegate(
+                    queue: queue,
+                    draggingQueueItemID: $draggingQueueItemID
+                  )
+                )
             }
-            .onMove { indices, newOffset in
-              queue.move(from: indices, to: newOffset)
-            }
+            .padding(.bottom, 60)
           }
-          .listStyle(.plain)
-          .scrollContentBackground(.hidden)
-          .padding(.bottom, 60)
           .scrollIndicators(.hidden)
         }
       }
@@ -723,6 +764,73 @@ struct QueueContentView: View {
       .ignoresSafeArea()
     )
     .clipShape(RoundedRectangle(cornerRadius: 12))
+  }
+}
+
+private struct QueueWindowDragHandleView: NSViewRepresentable {
+  func makeNSView(context: Context) -> QueueWindowDragHandleNSView {
+    QueueWindowDragHandleNSView()
+  }
+
+  func updateNSView(_ nsView: QueueWindowDragHandleNSView, context: Context) {}
+}
+
+private final class QueueWindowDragHandleNSView: NSView {
+  override func mouseDown(with event: NSEvent) {
+    window?.performDrag(with: event)
+  }
+}
+
+private struct QueueItemReorderDropDelegate: DropDelegate {
+  let targetItemID: UUID
+  let queue: QueueClipboard
+  @Binding var draggingQueueItemID: UUID?
+
+  func validateDrop(info: DropInfo) -> Bool {
+    draggingQueueItemID != nil
+  }
+
+  func dropEntered(info: DropInfo) {
+    guard let draggingQueueItemID else {
+      return
+    }
+
+    queue.move(itemWithID: draggingQueueItemID, beforeItemWithID: targetItemID)
+  }
+
+  func dropUpdated(info: DropInfo) -> DropProposal? {
+    DropProposal(operation: .move)
+  }
+
+  func performDrop(info: DropInfo) -> Bool {
+    draggingQueueItemID = nil
+    return true
+  }
+}
+
+private struct QueueReorderToEndDropDelegate: DropDelegate {
+  let queue: QueueClipboard
+  @Binding var draggingQueueItemID: UUID?
+
+  func validateDrop(info: DropInfo) -> Bool {
+    draggingQueueItemID != nil
+  }
+
+  func dropEntered(info: DropInfo) {
+    guard let draggingQueueItemID else {
+      return
+    }
+
+    queue.moveToEnd(itemWithID: draggingQueueItemID)
+  }
+
+  func dropUpdated(info: DropInfo) -> DropProposal? {
+    DropProposal(operation: .move)
+  }
+
+  func performDrop(info: DropInfo) -> Bool {
+    draggingQueueItemID = nil
+    return true
   }
 }
 
