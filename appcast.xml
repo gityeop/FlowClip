@@ -6,6 +6,27 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.12</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li>Show image previews in clipboard history when copying image files (png/jpg/jpeg/heic) from Finder.</li>
+  <li>Keep non-image file copy behavior unchanged.</li>
+  <li>Internal stability update around file URL handling for image items.</li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Wed, 18 Feb 2026 19:12:31 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.12</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.12/FlowClip.zip"
+        sparkle:version="13"
+        sparkle:shortVersionString="1.0.12"
+        length="6932910"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.11</title>
       <description>
         <![CDATA[

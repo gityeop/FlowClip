@@ -56,6 +56,13 @@ class HistoryItemTests: XCTestCase {
     XCTAssertEqual(item.title, "file:///tmp/foo.bar")
   }
 
+  func testImageFile() {
+    let url = Bundle(for: type(of: self)).url(forResource: "guy", withExtension: "jpeg")!
+    let item = historyItem(url)
+    XCTAssertEqual(item.title, "")
+    XCTAssertNotNil(item.image)
+  }
+
   func testFileWithEscapedChars() {
     let url = URL(fileURLWithPath: "/tmp/产品培训/产品培训.txt")
     let item = historyItem(url)

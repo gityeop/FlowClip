@@ -2,6 +2,7 @@ import AppKit
 import Defaults
 import Sauce
 import SwiftData
+import UniformTypeIdentifiers
 import Vision
 
 @Model
@@ -149,6 +150,9 @@ class HistoryItem {
     if data == nil, universalClipboardImage, let url = fileURLs.first {
       data = try? Data(contentsOf: url)
     }
+    if data == nil, let url = imageFileURL {
+      data = try? Data(contentsOf: url)
+    }
 
     return data
   }
@@ -190,6 +194,19 @@ class HistoryItem {
   var fromMaccy: Bool { contentData([.fromMaccy]) != nil }
   var universalClipboard: Bool { contentData([.universalClipboard]) != nil }
 
+  private var imageFileURL: URL? {
+    return fileURLs.first(where: { url in
+      guard !url.pathExtension.isEmpty else {
+        return false
+      }
+
+      guard let fileType = UTType(filenameExtension: url.pathExtension) else {
+        return false
+      }
+
+      return fileType.conforms(to: .image)
+    })
+  }
   private var universalClipboardImage: Bool { universalClipboard && fileURLs.first?.pathExtension == "jpeg" }
   private var universalClipboardText: Bool {
     universalClipboard && contentData([.html, .tiff, .png, .jpeg, .rtf, .string, .heic]) != nil
