@@ -577,6 +577,7 @@ struct QueueContentView: View {
           Text("Queue Clipboard")
             .font(.system(size: 13, weight: .semibold))
             .frame(maxWidth: .infinity, alignment: .center)
+            .allowsHitTesting(false)
             
           HStack {
             Button(action: { AppState.shared.appDelegate?.queuePanel.close() }) {
