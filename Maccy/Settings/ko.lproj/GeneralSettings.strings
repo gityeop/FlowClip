@@ -13,6 +13,7 @@
 "Paste All:" = "전체 붙여넣기:";
 "ToggleQueueAutoSplit" = "자동 분할 단축키:";
 "ToggleQueueOrder" = "대기열 순서 단축키:";
+"CycleQueueSeparatorPreset" = "구분자 프리셋 단축키:";
 "Behavior" = "동작:";
 "PasteAutomatically" = "자동으로 붙여넣기";
 "PasteWithoutFormatting" = "서식없이 붙여넣기";
@@ -31,3 +32,8 @@
 "Comma" = "쉼표";
 "Custom" = "사용자 지정";
 "CustomSeparatorTooltip" = "\\n (줄바꿈), \\t (탭), \\r (캐리지 리턴) 같은 이스케이프 시퀀스를 사용할 수 있습니다.";
+"QueueSeparatorPreset" = "프리셋:";
+"QueueSeparatorSaveToPreset" = "%d번 프리셋으로 저장";
+"QueueSeparatorUsePreset" = "%d번 프리셋 사용";
+"QueueSeparatorDeletePreset" = "프리셋 삭제";
+"QueueSeparatorCurrentPreset" = "현재 프리셋: %d";

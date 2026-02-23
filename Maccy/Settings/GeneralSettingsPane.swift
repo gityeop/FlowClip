@@ -12,12 +12,16 @@ struct GeneralSettingsPane: View {
   @Default(.searchMode) private var searchMode
   @Default(.queueSeparator) private var queueSeparator
   @Default(.customQueueSeparator) private var customQueueSeparator
+  @Default(.queueSeparatorPresets) private var queueSeparatorPresets
+  @Default(.queueActiveSeparatorPresetIndex) private var queueActiveSeparatorPresetIndex
 
   @State private var copyModifier = HistoryItemAction.copy.modifierFlags.description
   @State private var pasteModifier = HistoryItemAction.paste.modifierFlags.description
   @State private var pasteWithoutFormatting = HistoryItemAction.pasteWithoutFormatting.modifierFlags.description
 
   @State private var showCustomHelp = false
+  @State private var presetEditorIndex = 0
+  @State private var presetEditorValue = ""
   @State private var updater = SoftwareUpdater()
 
   var body: some View {
@@ -84,10 +88,16 @@ struct GeneralSettingsPane: View {
       }
 
       Settings.Section(
-        bottomDivider: true,
         label: { Text("ToggleQueueOrder", tableName: "GeneralSettings") }
       ) {
         KeyboardShortcuts.Recorder(for: .queueTogglePasteOrder)
+      }
+
+      Settings.Section(
+        bottomDivider: true,
+        label: { Text("CycleQueueSeparatorPreset", tableName: "GeneralSettings") }
+      ) {
+        KeyboardShortcuts.Recorder(for: .queueCycleSeparatorPreset)
       }
 
       Settings.Section(
@@ -143,26 +153,78 @@ struct GeneralSettingsPane: View {
           .frame(width: 180, alignment: .leading)
 
           if queueSeparator == .custom {
-            HStack(spacing: 6) {
-              TextField("", text: $customQueueSeparator)
-                .textFieldStyle(.roundedBorder)
-                .frame(width: 180)
-                .padding(.leading, 4)
-              Button(action: { showCustomHelp.toggle() }) {
-                Image(systemName: "questionmark.circle")
-                  .font(.body)
-                  .foregroundColor(.secondary)
+            VStack(alignment: .leading, spacing: 8) {
+              HStack(spacing: 6) {
+                TextField("", text: $presetEditorValue)
+                  .textFieldStyle(.roundedBorder)
+                  .frame(width: 180)
+                  .padding(.leading, 4)
+                Button(action: { showCustomHelp.toggle() }) {
+                  Image(systemName: "questionmark.circle")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                }
+                .buttonStyle(.borderless)
+                .popover(isPresented: $showCustomHelp) {
+                  Text(NSLocalizedString("CustomSeparatorTooltip", tableName: "GeneralSettings", comment: ""))
+                    .padding()
+                }
               }
-              .buttonStyle(.borderless)
-              .popover(isPresented: $showCustomHelp) {
-                Text(NSLocalizedString("CustomSeparatorTooltip", tableName: "GeneralSettings", comment: ""))
-                  .padding()
+
+              HStack(spacing: 8) {
+                Text("QueueSeparatorPreset", tableName: "GeneralSettings")
+                  .foregroundStyle(.secondary)
+                Picker("", selection: $presetEditorIndex) {
+                  ForEach(0..<QueueSeparator.presetCount, id: \.self) { index in
+                    Text("\(index + 1)")
+                      .tag(index)
+                  }
+                }
+                .labelsHidden()
+                .frame(width: 70, alignment: .leading)
+
+                Button(action: savePresetEditorValue) {
+                  Text(String(
+                    format: NSLocalizedString("QueueSeparatorSaveToPreset", tableName: "GeneralSettings", comment: ""),
+                    presetEditorIndex + 1
+                  ))
+                }
+                .buttonStyle(.borderless)
+              }
+
+              HStack(spacing: 8) {
+                Button(action: useSelectedPreset) {
+                  Text(String(
+                    format: NSLocalizedString("QueueSeparatorUsePreset", tableName: "GeneralSettings", comment: ""),
+                    presetEditorIndex + 1
+                  ))
+                }
+                .buttonStyle(.borderless)
+
+                Button(action: deleteSelectedPreset) {
+                  Text("QueueSeparatorDeletePreset", tableName: "GeneralSettings")
+                }
+                .buttonStyle(.borderless)
+
+                Text(String(
+                  format: NSLocalizedString("QueueSeparatorCurrentPreset", tableName: "GeneralSettings", comment: ""),
+                  QueueSeparator.normalizedPresetIndex(queueActiveSeparatorPresetIndex) + 1
+                ))
+                .foregroundStyle(.gray)
+                .controlSize(.small)
               }
             }
-            .frame(width: 220, alignment: .leading)
+            .frame(width: 360, alignment: .leading)
+            .onAppear(perform: preparePresetEditor)
+            .onChange(of: presetEditorIndex) {
+              loadPresetEditorValue()
+            }
+            .onChange(of: queueSeparatorPresets) {
+              refreshPresetEditorAfterPresetChange()
+            }
           }
         }
-        .frame(width: 220, alignment: .leading)
+        .frame(width: 360, alignment: .leading)
       }
 
 
@@ -174,12 +236,93 @@ struct GeneralSettingsPane: View {
         }
       }
     }
+    .onAppear(perform: preparePresetEditor)
   }
 
   private func refreshModifiers(_ sender: Sendable) {
     copyModifier = HistoryItemAction.copy.modifierFlags.description
     pasteModifier = HistoryItemAction.paste.modifierFlags.description
     pasteWithoutFormatting = HistoryItemAction.pasteWithoutFormatting.modifierFlags.description
+  }
+
+  private func preparePresetEditor() {
+    normalizePresetStorage()
+    presetEditorIndex = QueueSeparator.normalizedPresetIndex(queueActiveSeparatorPresetIndex)
+    loadPresetEditorValue()
+  }
+
+  private func normalizePresetStorage() {
+    let normalizedPresets = QueueSeparator.normalizedPresetSlots(queueSeparatorPresets)
+    if normalizedPresets != queueSeparatorPresets {
+      queueSeparatorPresets = normalizedPresets
+    }
+
+    let normalizedIndex = QueueSeparator.normalizedPresetIndex(
+      queueActiveSeparatorPresetIndex,
+      presets: normalizedPresets
+    )
+    if normalizedIndex != queueActiveSeparatorPresetIndex {
+      queueActiveSeparatorPresetIndex = normalizedIndex
+    }
+  }
+
+  private func loadPresetEditorValue() {
+    let presets = QueueSeparator.normalizedPresetSlots(queueSeparatorPresets)
+    let normalizedIndex = QueueSeparator.normalizedPresetIndex(presetEditorIndex, presets: presets)
+    if normalizedIndex != presetEditorIndex {
+      presetEditorIndex = normalizedIndex
+    }
+
+    presetEditorValue = presets[normalizedIndex]
+  }
+
+  private func refreshPresetEditorAfterPresetChange() {
+    normalizePresetStorage()
+    loadPresetEditorValue()
+  }
+
+  private func savePresetEditorValue() {
+    var presets = QueueSeparator.normalizedPresetSlots(queueSeparatorPresets)
+    let index = QueueSeparator.normalizedPresetIndex(presetEditorIndex, presets: presets)
+
+    presets[index] = presetEditorValue
+    queueSeparatorPresets = presets
+    queueActiveSeparatorPresetIndex = index
+    queueSeparator = .custom
+    customQueueSeparator = presetEditorValue
+  }
+
+  private func useSelectedPreset() {
+    let presets = QueueSeparator.normalizedPresetSlots(queueSeparatorPresets)
+    let index = QueueSeparator.normalizedPresetIndex(presetEditorIndex, presets: presets)
+
+    queueActiveSeparatorPresetIndex = index
+    queueSeparator = .custom
+    presetEditorValue = presets[index]
+    customQueueSeparator = presets[index]
+  }
+
+  private func deleteSelectedPreset() {
+    var presets = QueueSeparator.normalizedPresetSlots(queueSeparatorPresets)
+    let index = QueueSeparator.normalizedPresetIndex(presetEditorIndex, presets: presets)
+
+    presets[index] = ""
+    queueSeparatorPresets = presets
+
+    if queueActiveSeparatorPresetIndex == index {
+      queueActiveSeparatorPresetIndex = nextAvailablePresetIndex(in: presets, fallback: index)
+    }
+
+    customQueueSeparator = presets[QueueSeparator.normalizedPresetIndex(queueActiveSeparatorPresetIndex, presets: presets)]
+    loadPresetEditorValue()
+  }
+
+  private func nextAvailablePresetIndex(in presets: [String], fallback: Int) -> Int {
+    if let firstNonEmpty = presets.indices.first(where: { !presets[$0].isEmpty }) {
+      return firstNonEmpty
+    }
+
+    return QueueSeparator.normalizedPresetIndex(fallback, presets: presets)
   }
 }
 

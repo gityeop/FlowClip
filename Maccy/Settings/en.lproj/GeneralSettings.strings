@@ -13,6 +13,7 @@
 "Paste All:" = "Paste All:";
 "ToggleQueueAutoSplit" = "Auto-Split Key:";
 "ToggleQueueOrder" = "Queue Order Key:";
+"CycleQueueSeparatorPreset" = "Separator Preset Key:";
 "Behavior" = "Behavior:";
 "PasteAutomatically" = "Paste automatically";
 "PasteWithoutFormatting" = "Paste without formatting";
@@ -31,3 +32,8 @@
 "Comma" = "Comma";
 "Custom" = "Custom";
 "CustomSeparatorTooltip" = "You can use escape sequences like \\n (newline), \\t (tab), \\r (carriage return).";
+"QueueSeparatorPreset" = "Preset:";
+"QueueSeparatorSaveToPreset" = "Save to preset %d";
+"QueueSeparatorUsePreset" = "Use preset %d";
+"QueueSeparatorDeletePreset" = "Delete preset";
+"QueueSeparatorCurrentPreset" = "Current preset: %d";

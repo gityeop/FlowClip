@@ -426,6 +426,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       Defaults[.queuePasteLifo].toggle()
       NSSound.playMorseFeedback()
     }
+
+    KeyboardShortcuts.onKeyDown(for: .queueCycleSeparatorPreset) {
+      Defaults[.queueSeparator] = .custom
+      _ = QueueSeparator.cycleCurrentPreset()
+      NSSound.playMorseFeedback()
+    }
   }
 
   private func toggleQueue() {
@@ -483,6 +489,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       UserDefaults.standard.removeObject(forKey: "hideTitle")
 
       Defaults[.migrations]["2024-07-01-version-2"] = true
+    }
+
+    if Defaults[.migrations]["2026-02-23-queue-separator-presets"] != true {
+      var presets = QueueSeparator.normalizedPresetSlots(Defaults[.queueSeparatorPresets])
+      let legacyCustomSeparator = Defaults[.customQueueSeparator]
+      if !legacyCustomSeparator.isEmpty {
+        presets[0] = legacyCustomSeparator
+      }
+
+      Defaults[.queueSeparatorPresets] = presets
+      Defaults[.queueActiveSeparatorPresetIndex] = QueueSeparator.normalizedPresetIndex(
+        Defaults[.queueActiveSeparatorPresetIndex],
+        presets: presets
+      )
+      Defaults[.migrations]["2026-02-23-queue-separator-presets"] = true
     }
 
     // The following defaults are not used in Maccy 2.x
@@ -547,6 +568,8 @@ struct QueueContentView: View {
   @Default(.queueCyclePaste) var queueCyclePaste
   @Default(.queuePasteLifo) var queuePasteLifo
   @Default(.queueAutoSplitText) var queueAutoSplitText
+  @Default(.queueSeparator) var queueSeparator
+  @Default(.queueActiveSeparatorPresetIndex) var queueActiveSeparatorPresetIndex
   @State private var isHoveringClose = false
   @State private var draggingQueueItemID: UUID?
 
@@ -563,6 +586,16 @@ struct QueueContentView: View {
   private func toggleAutoSplitText() {
     queueAutoSplitText.toggle()
     NSSound.playMorseFeedback()
+  }
+
+  private func cycleSeparatorPreset() {
+    queueSeparator = .custom
+    queueActiveSeparatorPresetIndex = QueueSeparator.cycleCurrentPreset()
+    NSSound.playMorseFeedback()
+  }
+
+  private var separatorPresetNumber: Int {
+    QueueSeparator.normalizedPresetIndex(queueActiveSeparatorPresetIndex) + 1
   }
 
   var body: some View {
@@ -697,6 +730,26 @@ struct QueueContentView: View {
             .buttonStyle(.plain)
             .frame(width: 30) // Fixed width to prevent jitter
             .help("Toggle Paste Order")
+
+            Divider()
+              .frame(height: 12)
+              .background {
+                GeometryReader { proxy in
+                  Color.clear.preference(
+                    key: QueueControlDividerMidpointsPreferenceKey.self,
+                    value: [proxy.frame(in: .named("queue-control-space")).midX]
+                  )
+                }
+              }
+
+            Button(action: cycleSeparatorPreset) {
+              Text("S\(separatorPresetNumber)")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.accentColor)
+            }
+            .buttonStyle(.plain)
+            .frame(width: 24)
+            .help("Cycle Separator Preset")
           }
           .padding(.horizontal, 12)
           .padding(.vertical, 8)
@@ -706,8 +759,9 @@ struct QueueContentView: View {
           .overlayPreferenceValue(QueueControlDividerMidpointsPreferenceKey.self) { points in
             GeometryReader { proxy in
               let sortedPoints = points.sorted()
-              let firstDividerX = sortedPoints.first ?? proxy.size.width / 3
-              let secondDividerX = sortedPoints.count > 1 ? sortedPoints[1] : proxy.size.width * 2 / 3
+              let firstDividerX = sortedPoints.first ?? proxy.size.width / 4
+              let secondDividerX = sortedPoints.count > 1 ? sortedPoints[1] : proxy.size.width / 2
+              let thirdDividerX = sortedPoints.count > 2 ? sortedPoints[2] : proxy.size.width * 3 / 4
 
               HStack(spacing: 0) {
                 Color.clear
@@ -721,9 +775,14 @@ struct QueueContentView: View {
                   .onTapGesture(perform: toggleAutoSplitText)
 
                 Color.clear
-                  .frame(maxWidth: .infinity)
+                  .frame(width: max(0, thirdDividerX - secondDividerX))
                   .contentShape(Rectangle())
                   .onTapGesture(perform: togglePasteOrder)
+
+                Color.clear
+                  .frame(maxWidth: .infinity)
+                  .contentShape(Rectangle())
+                  .onTapGesture(perform: cycleSeparatorPreset)
               }
             }
           }

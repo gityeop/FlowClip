@@ -9,4 +9,5 @@ extension KeyboardShortcuts.Name {
   static let queuePasteAll = Self("queuePasteAll")
   static let queueToggleSplit = Self("queueToggleSplit")
   static let queueTogglePasteOrder = Self("queueTogglePasteOrder")
+  static let queueCycleSeparatorPreset = Self("queueCycleSeparatorPreset")
 }
