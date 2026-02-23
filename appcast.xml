@@ -6,6 +6,31 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.13</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li>Queue Clipboard title text area is now draggable for moving the window.</li>
+  <li>Added Queue paste separator presets (up to 9) with cycling support.</li>
+  <li>Added separator preset indicator in Queue controls (next to FIFO/LIFO).</li>
+  <li>Added preset save/delete management in General settings.</li>
+  <li>Added a shortcut setting to cycle separator presets.</li>
+  <li>When all presets are empty, Queue controls now show <strong>S0</strong> (no selected preset).</li>
+  <li>Updated funding source to GitHub Sponsors.</li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Mon, 23 Feb 2026 23:16:17 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.13</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.13/FlowClip.zip"
+        sparkle:version="14"
+        sparkle:shortVersionString="1.0.13"
+        length="6958101"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.12</title>
       <description>
         <![CDATA[
