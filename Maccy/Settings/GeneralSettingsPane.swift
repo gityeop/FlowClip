@@ -189,26 +189,18 @@ struct GeneralSettingsPane: View {
                     presetEditorIndex + 1
                   ))
                 }
-                .buttonStyle(.borderless)
+                .buttonStyle(.borderedProminent)
               }
 
               HStack(spacing: 8) {
-                Button(action: useSelectedPreset) {
-                  Text(String(
-                    format: NSLocalizedString("QueueSeparatorUsePreset", tableName: "GeneralSettings", comment: ""),
-                    presetEditorIndex + 1
-                  ))
-                }
-                .buttonStyle(.borderless)
-
                 Button(action: deleteSelectedPreset) {
                   Text("QueueSeparatorDeletePreset", tableName: "GeneralSettings")
                 }
-                .buttonStyle(.borderless)
+                .buttonStyle(.bordered)
 
                 Text(String(
                   format: NSLocalizedString("QueueSeparatorCurrentPreset", tableName: "GeneralSettings", comment: ""),
-                  QueueSeparator.normalizedPresetIndex(queueActiveSeparatorPresetIndex) + 1
+                  currentPresetNumberForDisplay
                 ))
                 .foregroundStyle(.gray)
                 .controlSize(.small)
@@ -292,16 +284,6 @@ struct GeneralSettingsPane: View {
     customQueueSeparator = presetEditorValue
   }
 
-  private func useSelectedPreset() {
-    let presets = QueueSeparator.normalizedPresetSlots(queueSeparatorPresets)
-    let index = QueueSeparator.normalizedPresetIndex(presetEditorIndex, presets: presets)
-
-    queueActiveSeparatorPresetIndex = index
-    queueSeparator = .custom
-    presetEditorValue = presets[index]
-    customQueueSeparator = presets[index]
-  }
-
   private func deleteSelectedPreset() {
     var presets = QueueSeparator.normalizedPresetSlots(queueSeparatorPresets)
     let index = QueueSeparator.normalizedPresetIndex(presetEditorIndex, presets: presets)
@@ -323,6 +305,15 @@ struct GeneralSettingsPane: View {
     }
 
     return QueueSeparator.normalizedPresetIndex(fallback, presets: presets)
+  }
+
+  private var currentPresetNumberForDisplay: Int {
+    let presets = QueueSeparator.normalizedPresetSlots(queueSeparatorPresets)
+    guard presets.contains(where: { !$0.isEmpty }) else {
+      return 0
+    }
+
+    return QueueSeparator.normalizedPresetIndex(queueActiveSeparatorPresetIndex, presets: presets) + 1
   }
 }
 

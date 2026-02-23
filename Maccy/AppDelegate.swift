@@ -569,6 +569,7 @@ struct QueueContentView: View {
   @Default(.queuePasteLifo) var queuePasteLifo
   @Default(.queueAutoSplitText) var queueAutoSplitText
   @Default(.queueSeparator) var queueSeparator
+  @Default(.queueSeparatorPresets) var queueSeparatorPresets
   @Default(.queueActiveSeparatorPresetIndex) var queueActiveSeparatorPresetIndex
   @State private var isHoveringClose = false
   @State private var draggingQueueItemID: UUID?
@@ -595,7 +596,12 @@ struct QueueContentView: View {
   }
 
   private var separatorPresetNumber: Int {
-    QueueSeparator.normalizedPresetIndex(queueActiveSeparatorPresetIndex) + 1
+    let presets = QueueSeparator.normalizedPresetSlots(queueSeparatorPresets)
+    guard presets.contains(where: { !$0.isEmpty }) else {
+      return 0
+    }
+
+    return QueueSeparator.normalizedPresetIndex(queueActiveSeparatorPresetIndex) + 1
   }
 
   var body: some View {
