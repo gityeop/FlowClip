@@ -176,9 +176,11 @@ class HistoryItemDecorator: Identifiable, Hashable {
   func togglePin() {
     if item.pin != nil {
       item.pin = nil
+      item.pinOrder = nil
     } else {
       let pin = HistoryItem.randomAvailablePin
       item.pin = pin
+      item.pinOrder = HistoryItem.nextPinOrder
     }
   }
 

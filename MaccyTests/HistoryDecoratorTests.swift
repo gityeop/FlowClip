@@ -1,6 +1,6 @@
 import XCTest
 import Defaults
-@testable import Maccy
+@testable import FlowClip
 
 @MainActor
 class HistoryItemDecoratorTests: XCTestCase {
@@ -109,6 +109,7 @@ class HistoryItemDecoratorTests: XCTestCase {
     let itemDecorator = historyItemDecorator("foo")
     itemDecorator.togglePin()
     XCTAssertNotNil(itemDecorator.item.pin)
+    XCTAssertNotNil(itemDecorator.item.pinOrder)
     XCTAssertTrue(itemDecorator.isPinned)
   }
 
@@ -117,6 +118,7 @@ class HistoryItemDecoratorTests: XCTestCase {
     itemDecorator.togglePin()
     itemDecorator.togglePin()
     XCTAssertNil(itemDecorator.item.pin)
+    XCTAssertNil(itemDecorator.item.pinOrder)
     XCTAssertFalse(itemDecorator.isPinned)
   }
 

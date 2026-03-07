@@ -1,36 +1,43 @@
 import XCTest
 import Defaults
-@testable import Maccy
+@testable import FlowClip
 
-@MainActor
 class HistoryTests: XCTestCase {
   let savedSize = Defaults[.size]
   let savedSortBy = Defaults[.sortBy]
+  let savedPinTo = Defaults[.pinTo]
   let history = History.shared
 
+  @MainActor
   override func setUp() {
     super.setUp()
     history.clearAll()
     Defaults[.size] = 10
     Defaults[.sortBy] = .firstCopiedAt
+    Defaults[.pinTo] = .top
   }
 
+  @MainActor
   override func tearDown() {
     super.tearDown()
     Defaults[.size] = savedSize
     Defaults[.sortBy] = savedSortBy
+    Defaults[.pinTo] = savedPinTo
   }
 
+  @MainActor
   func testDefaultIsEmpty() {
     XCTAssertEqual(history.items, [])
   }
 
+  @MainActor
   func testAdding() {
     let first = history.add(historyItem("foo"))
     let second = history.add(historyItem("bar"))
     XCTAssertEqual(history.items, [second, first])
   }
 
+  @MainActor
   func testAddingSame() {
     let first = historyItem("foo")
     first.title = "xyz"
@@ -53,6 +60,7 @@ class HistoryTests: XCTestCase {
     XCTAssertEqual(history.items[0].item.application, "iTerm.app")
   }
 
+  @MainActor
   func testAddingItemThatIsSupersededByExisting() {
     let firstContents = [
       HistoryItemContent(
@@ -88,6 +96,7 @@ class HistoryTests: XCTestCase {
     XCTAssertEqual(Set(history.items[0].item.contents), Set(firstContents))
   }
 
+  @MainActor
   func testAddingItemWithDifferentModifiedType() {
     let firstContents = [
       HistoryItemContent(
@@ -123,6 +132,7 @@ class HistoryTests: XCTestCase {
     XCTAssertEqual(Set(history.items[0].item.contents), Set(firstContents))
   }
 
+  @MainActor
   func testAddingItemFromMaccy() {
     let firstContents = [
       HistoryItemContent(
@@ -157,6 +167,7 @@ class HistoryTests: XCTestCase {
     XCTAssertEqual(Set(history.items[0].item.contents), Set(firstContents))
   }
 
+  @MainActor
   func testModifiedAfterCopying() {
     history.add(historyItem("foo"))
 
@@ -171,6 +182,7 @@ class HistoryTests: XCTestCase {
     XCTAssertEqual(history.items[0].text, "bar")
   }
 
+  @MainActor
   func testClearingUnpinned() {
     let pinned = history.add(historyItem("foo"))
     pinned.togglePin()
@@ -179,12 +191,92 @@ class HistoryTests: XCTestCase {
     XCTAssertEqual(history.items, [pinned])
   }
 
+  @MainActor
   func testClearingAll() {
     history.add(historyItem("foo"))
     history.clear()
     XCTAssertEqual(history.items, [])
   }
 
+  @MainActor
+  func testMovePinnedToFirstPinnedIndexReordersPinnedSectionOnly() {
+    let firstPinned = history.add(historyItem("first pinned"))
+    let secondPinned = history.add(historyItem("second pinned"))
+    history.add(historyItem("regular"))
+
+    history.togglePin(firstPinned)
+    history.togglePin(secondPinned)
+    history.movePinned(itemWithID: secondPinned.id, toPinnedIndex: 0)
+
+    XCTAssertEqual(history.items.compactMap { $0.item.text }, ["second pinned", "first pinned", "regular"])
+    XCTAssertEqual(firstPinned.item.pinOrder, 1)
+    XCTAssertEqual(secondPinned.item.pinOrder, 0)
+  }
+
+  @MainActor
+  func testMovePinnedToLastPinnedSlotMovesItemToLastPinnedPosition() {
+    let firstPinned = history.add(historyItem("first pinned"))
+    let secondPinned = history.add(historyItem("second pinned"))
+    let thirdPinned = history.add(historyItem("third pinned"))
+    history.add(historyItem("regular"))
+
+    history.togglePin(firstPinned)
+    history.togglePin(secondPinned)
+    history.togglePin(thirdPinned)
+    history.movePinned(itemWithID: firstPinned.id, toPinnedIndex: 3)
+
+    XCTAssertEqual(
+      history.items.compactMap { $0.item.text },
+      ["second pinned", "third pinned", "first pinned", "regular"]
+    )
+    XCTAssertEqual(secondPinned.item.pinOrder, 0)
+    XCTAssertEqual(thirdPinned.item.pinOrder, 1)
+    XCTAssertEqual(firstPinned.item.pinOrder, 2)
+  }
+
+  @MainActor
+  func testMovePinnedDoesNothingForUnchangedPinnedSlots() {
+    let firstPinned = history.add(historyItem("first pinned"))
+    let secondPinned = history.add(historyItem("second pinned"))
+    let thirdPinned = history.add(historyItem("third pinned"))
+
+    history.togglePin(firstPinned)
+    history.togglePin(secondPinned)
+    history.togglePin(thirdPinned)
+
+    history.movePinned(itemWithID: secondPinned.id, toPinnedIndex: 1)
+    history.movePinned(itemWithID: secondPinned.id, toPinnedIndex: 2)
+
+    XCTAssertEqual(
+      history.items.compactMap { $0.item.text },
+      ["first pinned", "second pinned", "third pinned"]
+    )
+    XCTAssertEqual(firstPinned.item.pinOrder, 0)
+    XCTAssertEqual(secondPinned.item.pinOrder, 1)
+    XCTAssertEqual(thirdPinned.item.pinOrder, 2)
+  }
+
+  @MainActor
+  func testMovePinnedOrderPersistsAfterReload() async throws {
+    let firstPinned = history.add(historyItem("first pinned"))
+    let secondPinned = history.add(historyItem("second pinned"))
+    let thirdPinned = history.add(historyItem("third pinned"))
+
+    history.togglePin(firstPinned)
+    history.togglePin(secondPinned)
+    history.togglePin(thirdPinned)
+    history.movePinned(itemWithID: thirdPinned.id, toPinnedIndex: 0)
+
+    try await history.load()
+
+    XCTAssertEqual(
+      history.items.compactMap { $0.item.text },
+      ["third pinned", "first pinned", "second pinned"]
+    )
+    XCTAssertEqual(history.items.compactMap(\.item.pinOrder), [0, 1, 2])
+  }
+
+  @MainActor
   func testMaxSize() {
     var items: [HistoryItemDecorator] = []
     for index in 0...10 {
@@ -196,6 +288,7 @@ class HistoryTests: XCTestCase {
     XCTAssertFalse(history.items.contains(items[0]))
   }
 
+  @MainActor
   func testMaxSizeIgnoresPinned() {
     var items: [HistoryItemDecorator] = []
 
@@ -213,6 +306,7 @@ class HistoryTests: XCTestCase {
     XCTAssertFalse(history.items.contains(items[1]))
   }
 
+  @MainActor
   func testMaxSizeIsChanged() {
     var items: [HistoryItemDecorator] = []
     for index in 0...10 {
@@ -226,6 +320,7 @@ class HistoryTests: XCTestCase {
     XCTAssertFalse(history.items.contains(items[5]))
   }
 
+  @MainActor
   func testRemoving() {
     let foo = history.add(historyItem("foo"))
     let bar = history.add(historyItem("bar"))
@@ -233,6 +328,146 @@ class HistoryTests: XCTestCase {
     XCTAssertEqual(history.items, [bar])
   }
 
+  @MainActor
+  private func historyItem(_ value: String) -> HistoryItem {
+    let contents = [
+      HistoryItemContent(
+        type: NSPasteboard.PasteboardType.string.rawValue,
+        value: value.data(using: .utf8)
+      )
+    ]
+    let item = HistoryItem()
+    Storage.shared.context.insert(item)
+    item.contents = contents
+    item.numberOfCopies = 1
+    item.title = item.generateTitle()
+
+    return item
+  }
+}
+
+class HistoryPinnedReorderTests: XCTestCase {
+  let savedSize = Defaults[.size]
+  let savedSortBy = Defaults[.sortBy]
+  let savedPinTo = Defaults[.pinTo]
+  let history = History.shared
+
+  override func setUpWithError() throws {
+    try super.setUpWithError()
+    runOnMainActor(description: "Reset history") { [self] in
+      self.history.clearAll()
+      Defaults[.size] = 10
+      Defaults[.sortBy] = .firstCopiedAt
+      Defaults[.pinTo] = .top
+    }
+  }
+
+  override func tearDownWithError() throws {
+    runOnMainActor(description: "Restore history") { [self] in
+      self.history.clearAll()
+      Defaults[.size] = self.savedSize
+      Defaults[.sortBy] = self.savedSortBy
+      Defaults[.pinTo] = self.savedPinTo
+    }
+    try super.tearDownWithError()
+  }
+
+  func testPinnedReorderMovesItemToFirstSlot() async {
+    await MainActor.run {
+      let firstPinned = history.add(historyItem("first pinned"))
+      let secondPinned = history.add(historyItem("second pinned"))
+      history.add(historyItem("regular"))
+
+      history.togglePin(firstPinned)
+      history.togglePin(secondPinned)
+      history.movePinned(itemWithID: secondPinned.id, toPinnedIndex: 0)
+
+      XCTAssertEqual(history.items.compactMap { $0.item.text }, ["second pinned", "first pinned", "regular"])
+      XCTAssertEqual(firstPinned.item.pinOrder, 1)
+      XCTAssertEqual(secondPinned.item.pinOrder, 0)
+    }
+  }
+
+  func testPinnedReorderMovesFirstItemToLastSlot() async {
+    await MainActor.run {
+      let firstPinned = history.add(historyItem("first pinned"))
+      let secondPinned = history.add(historyItem("second pinned"))
+      let thirdPinned = history.add(historyItem("third pinned"))
+      history.add(historyItem("regular"))
+
+      history.togglePin(firstPinned)
+      history.togglePin(secondPinned)
+      history.togglePin(thirdPinned)
+      history.movePinned(itemWithID: firstPinned.id, toPinnedIndex: 3)
+
+      XCTAssertEqual(
+        history.items.compactMap { $0.item.text },
+        ["second pinned", "third pinned", "first pinned", "regular"]
+      )
+      XCTAssertEqual(secondPinned.item.pinOrder, 0)
+      XCTAssertEqual(thirdPinned.item.pinOrder, 1)
+      XCTAssertEqual(firstPinned.item.pinOrder, 2)
+    }
+  }
+
+  func testPinnedReorderIgnoresUnchangedSlots() async {
+    await MainActor.run {
+      let firstPinned = history.add(historyItem("first pinned"))
+      let secondPinned = history.add(historyItem("second pinned"))
+      let thirdPinned = history.add(historyItem("third pinned"))
+
+      history.togglePin(firstPinned)
+      history.togglePin(secondPinned)
+      history.togglePin(thirdPinned)
+
+      history.movePinned(itemWithID: secondPinned.id, toPinnedIndex: 1)
+      history.movePinned(itemWithID: secondPinned.id, toPinnedIndex: 2)
+
+      XCTAssertEqual(
+        history.items.compactMap { $0.item.text },
+        ["first pinned", "second pinned", "third pinned"]
+      )
+      XCTAssertEqual(firstPinned.item.pinOrder, 0)
+      XCTAssertEqual(secondPinned.item.pinOrder, 1)
+      XCTAssertEqual(thirdPinned.item.pinOrder, 2)
+    }
+  }
+
+  func testPinnedReorderPersistsAfterReload() async throws {
+    await MainActor.run {
+      let firstPinned = history.add(historyItem("first pinned"))
+      let secondPinned = history.add(historyItem("second pinned"))
+      let thirdPinned = history.add(historyItem("third pinned"))
+
+      history.togglePin(firstPinned)
+      history.togglePin(secondPinned)
+      history.togglePin(thirdPinned)
+      history.movePinned(itemWithID: thirdPinned.id, toPinnedIndex: 0)
+    }
+
+    try await history.load()
+
+    await MainActor.run {
+      XCTAssertEqual(
+        history.items.compactMap { $0.item.text },
+        ["third pinned", "first pinned", "second pinned"]
+      )
+      XCTAssertEqual(history.items.compactMap(\.item.pinOrder), [0, 1, 2])
+    }
+  }
+
+  private func runOnMainActor(description: String, _ work: @escaping @MainActor () -> Void) {
+    let expectation = expectation(description: description)
+
+    Task { @MainActor in
+      work()
+      expectation.fulfill()
+    }
+
+    wait(for: [expectation], timeout: 2)
+  }
+
+  @MainActor
   private func historyItem(_ value: String) -> HistoryItem {
     let contents = [
       HistoryItemContent(

@@ -286,6 +286,45 @@ class MaccyUITests: XCTestCase {
     XCTAssertEqual(itemTitles[0...1], [copy1, copy2])
   }
 
+  func testPinnedReorderCanMoveItemToTopSlot() {
+    let copy4 = UUID().uuidString
+    copyToClipboard(copy3)
+    copyToClipboard(copy4)
+
+    popUpWithMouse()
+    pin(copy1)
+    pin(copy2)
+    pin(copy3)
+    pin(copy4)
+
+    XCTAssertEqual(Array(itemTitles.prefix(4)), [copy1, copy2, copy3, copy4])
+
+    dragPinnedItem(copy3, beforePinnedItem: copy1)
+
+    XCTAssertEqual(Array(itemTitles.prefix(4)), [copy3, copy1, copy2, copy4])
+  }
+
+  func testPinnedReorderCanMoveFirstItemToLaterSlotAndPersist() {
+    let copy4 = UUID().uuidString
+    copyToClipboard(copy3)
+    copyToClipboard(copy4)
+
+    popUpWithMouse()
+    pin(copy1)
+    pin(copy2)
+    pin(copy3)
+    pin(copy4)
+
+    dragPinnedItem(copy1, afterPinnedItem: copy4)
+
+    XCTAssertEqual(Array(itemTitles.prefix(4)), [copy2, copy3, copy4, copy1])
+
+    app.typeKey(.escape, modifierFlags: [])
+    popUpWithMouse()
+
+    XCTAssertEqual(Array(itemTitles.prefix(4)), [copy2, copy3, copy4, copy1])
+  }
+
   func testRemoveLastWordFromSearchWithControlW() {
     popUpWithMouse()
     search("foo bar")
@@ -550,9 +589,42 @@ class MaccyUITests: XCTestCase {
   }
 
   private func pin(_ title: String) {
-    hover(items[title].firstMatch)
+    let item = historyItemElement(title)
+    assertExists(item)
+    hover(item)
     app.typeKey("p", modifierFlags: [.option])
     usleep(1_500_000)
+  }
+
+  private func dragPinnedItem(_ title: String, beforePinnedItem targetTitle: String) {
+    let source = historyItemElement(title)
+    let target = historyItemElement(targetTitle)
+
+    assertExists(source)
+    assertExists(target)
+
+    let sourceCoordinate = source.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+    let targetCoordinate = target.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05))
+    sourceCoordinate.press(forDuration: 0.5, thenDragTo: targetCoordinate)
+    usleep(500000)
+  }
+
+  private func dragPinnedItem(_ title: String, afterPinnedItem targetTitle: String) {
+    let source = historyItemElement(title)
+    let target = historyItemElement(targetTitle)
+
+    assertExists(source)
+    assertExists(target)
+
+    let sourceCoordinate = source.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+    let targetCoordinate = target.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95))
+    sourceCoordinate.press(forDuration: 0.5, thenDragTo: targetCoordinate)
+    usleep(500000)
+  }
+
+  private func historyItemElement(_ title: String) -> XCUIElement {
+    let predicate = NSPredicate(format: "label == %@ OR value == %@", title, title)
+    return app.descendants(matching: .staticText).matching(predicate).firstMatch
   }
 
   private func hover(_ element: XCUIElement) {

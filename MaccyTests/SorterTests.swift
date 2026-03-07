@@ -1,6 +1,6 @@
 import XCTest
 import Defaults
-@testable import Maccy
+@testable import FlowClip
 
 class SorterTests: XCTestCase {
   let savedPinTo = Defaults[.pinTo]
@@ -49,6 +49,17 @@ class SorterTests: XCTestCase {
     item1.pin = "a"
     item3.pin = "b"
     XCTAssertEqual(sorter.sort([item1, item2, item3], by: .lastCopiedAt), [item2, item1, item3])
+  }
+
+  func testSortPinnedItemsByPinOrder() {
+    Defaults[.pinTo] = .top
+
+    item1.pin = "a"
+    item1.pinOrder = 1
+    item3.pin = "b"
+    item3.pinOrder = 0
+
+    XCTAssertEqual(sorter.sort([item1, item2, item3], by: .lastCopiedAt), [item3, item1, item2])
   }
 
   @MainActor

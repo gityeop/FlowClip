@@ -14,6 +14,7 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   var statusBarButton: NSStatusBarButton?
   var closeOnResignKey: Bool = true
   let onClose: () -> Void
+  let onEndLiveResize: (() -> Void)?
   let sizePersistenceKey: Defaults.Key<NSSize>
   let positionPersistenceKey: Defaults.Key<NSPoint>
 
@@ -36,15 +37,17 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
     sizePersistenceKey: Defaults.Key<NSSize> = .windowSize,
     positionPersistenceKey: Defaults.Key<NSPoint> = .windowPosition,
     onClose: @escaping () -> Void,
+    onEndLiveResize: (() -> Void)? = nil,
     view: () -> Content
   ) {
     self.onClose = onClose
+    self.onEndLiveResize = onEndLiveResize
     self.sizePersistenceKey = sizePersistenceKey
     self.positionPersistenceKey = positionPersistenceKey
 
     super.init(
         contentRect: contentRect,
-        styleMask: [.nonactivatingPanel, .resizable, .closable, .fullSizeContentView],
+        styleMask: [.titled, .nonactivatingPanel, .resizable, .closable, .fullSizeContentView],
         backing: .buffered,
         defer: false
     )
@@ -67,7 +70,9 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
     backgroundColor = .clear
     titlebarSeparatorStyle = .none
 
-    // Hide all traffic light buttons
+    // Keep the titled frame for resize hit-testing, but hide the chrome.
+    standardWindowButton(.closeButton)?.isHidden = true
+    standardWindowButton(.miniaturizeButton)?.isHidden = true
     standardWindowButton(.zoomButton)?.isHidden = true
 
 
@@ -75,10 +80,6 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
       rootView: view()
         // The safe area is ignored because the title bar still interferes with the geometry
         .ignoresSafeArea()
-        .simultaneousGesture(DragGesture()
-          .onEnded { _ in
-            self.saveWindowPosition()
-        })
     )
     contentView?.layer?.cornerRadius = Popup.cornerRadius + Popup.horizontalPadding
   }
@@ -139,6 +140,15 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
     }
 
     return frameSize
+  }
+
+  func windowDidMove(_ notification: Notification) {
+    saveWindowPosition()
+  }
+
+  func windowDidEndLiveResize(_ notification: Notification) {
+    saveWindowFrame(frame: frame)
+    onEndLiveResize?()
   }
 
   // Close automatically when out of focus, e.g. outside click.

@@ -110,7 +110,9 @@ class History { // swiftlint:disable:this type_body_length
   func load() async throws {
     let descriptor = FetchDescriptor<HistoryItem>()
     let results = try Storage.shared.context.fetch(descriptor)
-    all = sorter.sort(results).map { HistoryItemDecorator($0) }
+    let sortedResults = sorter.sort(results)
+    normalizePinnedOrder(in: sortedResults)
+    all = sortedResults.map { HistoryItemDecorator($0) }
     items = all
 
     limitHistorySize(to: Defaults[.size])
@@ -156,6 +158,7 @@ class History { // swiftlint:disable:this type_body_length
       item.firstCopiedAt = existingHistoryItem.firstCopiedAt
       item.numberOfCopies += existingHistoryItem.numberOfCopies
       item.pin = existingHistoryItem.pin
+      item.pinOrder = existingHistoryItem.pinOrder
       item.title = existingHistoryItem.title
       if !item.fromMaccy {
         item.application = existingHistoryItem.application
@@ -347,6 +350,7 @@ class History { // swiftlint:disable:this type_body_length
       all.insert(item, at: newIndex)
     }
 
+    normalizePinnedOrder(in: all.map(\.item))
     items = all
 
     searchQuery = ""
@@ -354,6 +358,25 @@ class History { // swiftlint:disable:this type_body_length
     if item.isUnpinned {
       AppState.shared.scrollTarget = item.id
     }
+  }
+
+  @MainActor
+  func movePinned(itemWithID sourceID: UUID, toPinnedIndex pinnedIndex: Int) {
+    var reorderedPinnedItems = all.filter(\.isPinned)
+    guard let sourceIndex = reorderedPinnedItems.firstIndex(where: { $0.id == sourceID }) else {
+      return
+    }
+
+    let clampedPinnedIndex = min(max(pinnedIndex, 0), reorderedPinnedItems.count)
+    if clampedPinnedIndex == sourceIndex || clampedPinnedIndex == sourceIndex + 1 {
+      return
+    }
+
+    let item = reorderedPinnedItems.remove(at: sourceIndex)
+    let destinationIndex = clampedPinnedIndex > sourceIndex ? clampedPinnedIndex - 1 : clampedPinnedIndex
+    reorderedPinnedItems.insert(item, at: destinationIndex)
+
+    replacePinnedItems(with: reorderedPinnedItems)
   }
 
   @MainActor
@@ -404,6 +427,47 @@ class History { // swiftlint:disable:this type_body_length
   private func updateTitle(item: HistoryItemDecorator, title: String) {
     item.title = title
     item.item.title = title
+  }
+
+  @MainActor
+  private func normalizePinnedOrder(in historyItems: [HistoryItem]) {
+    let pinnedHistoryItems = historyItems.filter { $0.pin != nil }
+    var needsSave = false
+
+    for (index, item) in pinnedHistoryItems.enumerated() {
+      if item.pinOrder != index {
+        item.pinOrder = index
+        needsSave = true
+      }
+    }
+
+    for item in historyItems where item.pin == nil && item.pinOrder != nil {
+      item.pinOrder = nil
+      needsSave = true
+    }
+
+    if needsSave {
+      Storage.shared.context.processPendingChanges()
+      try? Storage.shared.context.save()
+    }
+  }
+
+  @MainActor
+  private func replacePinnedItems(with reorderedPinnedItems: [HistoryItemDecorator]) {
+    let unpinnedItems = all.filter(\.isUnpinned)
+    if Defaults[.pinTo] == .bottom {
+      all = unpinnedItems + reorderedPinnedItems
+    } else {
+      all = reorderedPinnedItems + unpinnedItems
+    }
+
+    normalizePinnedOrder(in: all.map(\.item))
+
+    if searchQuery.isEmpty {
+      items = all
+    } else {
+      updateItems(search.search(string: searchQuery, within: all))
+    }
   }
 
   private func updateUnpinnedShortcuts() {

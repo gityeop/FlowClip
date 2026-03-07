@@ -44,6 +44,15 @@ class HistoryItem {
   @MainActor
   static var randomAvailablePin: String { availablePins.randomElement() ?? "" }
 
+  @MainActor
+  static var nextPinOrder: Int {
+    let descriptor = FetchDescriptor<HistoryItem>(
+      predicate: #Predicate { $0.pin != nil }
+    )
+    let pinOrders = try? Storage.shared.context.fetch(descriptor).compactMap(\.pinOrder)
+    return (pinOrders?.max() ?? -1) + 1
+  }
+
   private static let transientTypes: [String] = [
     NSPasteboard.PasteboardType.modified.rawValue,
     NSPasteboard.PasteboardType.fromMaccy.rawValue,
@@ -61,6 +70,7 @@ class HistoryItem {
   var lastCopiedAt: Date = Date.now
   var numberOfCopies: Int = 1
   var pin: String?
+  var pinOrder: Int?
   var title = ""
 
   @Relationship(deleteRule: .cascade, inverse: \HistoryItemContent.item)

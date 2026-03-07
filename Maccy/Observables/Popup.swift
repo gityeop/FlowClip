@@ -38,9 +38,22 @@ class Popup {
 
   var needsResize = false
   var height: CGFloat = 0
-  var headerHeight: CGFloat = 0
-  var pinnedItemsHeight: CGFloat = 0
-  var footerHeight: CGFloat = 0
+  var contentHeight: CGFloat = 0
+  var headerHeight: CGFloat = 0 {
+    didSet {
+      updateHeight()
+    }
+  }
+  var pinnedItemsHeight: CGFloat = 0 {
+    didSet {
+      updateHeight()
+    }
+  }
+  var footerHeight: CGFloat = 0 {
+    didSet {
+      updateHeight()
+    }
+  }
 
   private var eventsMonitor: Any?
 
@@ -88,8 +101,29 @@ class Popup {
   }
 
   func resize(height: CGFloat) {
-    self.height = height + headerHeight + pinnedItemsHeight + footerHeight + (Popup.verticalPadding * 2)
-    AppState.shared.appDelegate?.panel.verticallyResize(to: self.height)
+    contentHeight = height
+    updateHeight()
+  }
+
+  private func updateHeight() {
+    height = contentHeight + headerHeight + pinnedItemsHeight + footerHeight + (Popup.verticalPadding * 2)
+
+    guard let panel = AppState.shared.appDelegate?.panel else {
+      needsResize = false
+      return
+    }
+
+    guard panel.isPresented else {
+      needsResize = false
+      return
+    }
+
+    if panel.inLiveResize {
+      needsResize = true
+      return
+    }
+
+    panel.verticallyResize(to: height)
     needsResize = false
   }
 

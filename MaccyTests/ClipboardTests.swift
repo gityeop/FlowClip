@@ -1,6 +1,6 @@
 import XCTest
 import Defaults
-@testable import Maccy
+@testable import FlowClip
 
 // swiftlint:disable type_body_length
 class ClipboardTests: XCTestCase {

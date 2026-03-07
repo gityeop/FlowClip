@@ -373,10 +373,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       contentRect: NSRect(origin: .zero, size: Defaults[.windowSize]),
       identifier: Bundle.main.bundleIdentifier ?? "org.p0deje.Maccy",
       statusBarButton: statusItem.button,
-      onClose: { AppState.shared.popup.reset() }
+      onClose: { AppState.shared.popup.reset() },
+      onEndLiveResize: {
+        if AppState.shared.popup.needsResize {
+          AppState.shared.popup.resize(height: AppState.shared.popup.contentHeight)
+        }
+      }
     ) {
       ContentView()
     }
+    panel.isMovableByWindowBackground = false
 
     queuePanel = FloatingPanel(
       contentRect: NSRect(origin: .zero, size: Defaults[.queueWindowSize]),

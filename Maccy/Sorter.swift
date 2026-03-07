@@ -24,9 +24,13 @@ class Sorter {
   }
 
   func sort(_ items: [HistoryItem], by: By = Defaults[.sortBy]) -> [HistoryItem] {
-    return items
-      .sorted(by: { return bySortingAlgorithm($0, $1, by) })
-      .sorted(by: byPinned)
+    return items.sorted { lhs, rhs in
+      if let pinnedOrder = byPinned(lhs, rhs, by) {
+        return pinnedOrder
+      }
+
+      return bySortingAlgorithm(lhs, rhs, by)
+    }
   }
 
   private func bySortingAlgorithm(_ lhs: HistoryItem, _ rhs: HistoryItem, _ by: By) -> Bool {
@@ -40,11 +44,25 @@ class Sorter {
     }
   }
 
-  private func byPinned(_ lhs: HistoryItem, _ rhs: HistoryItem) -> Bool {
-    if Defaults[.pinTo] == .bottom {
-      return (lhs.pin == nil) && (rhs.pin != nil)
-    } else {
-      return (lhs.pin != nil) && (rhs.pin == nil)
+  private func byPinned(_ lhs: HistoryItem, _ rhs: HistoryItem, _ by: By) -> Bool? {
+    switch (lhs.pin != nil, rhs.pin != nil) {
+    case (true, false):
+      return Defaults[.pinTo] == .top
+    case (false, true):
+      return Defaults[.pinTo] == .bottom
+    case (true, true):
+      if let lhsPinOrder = lhs.pinOrder, let rhsPinOrder = rhs.pinOrder, lhsPinOrder != rhsPinOrder {
+        return lhsPinOrder < rhsPinOrder
+      }
+      if lhs.pinOrder != nil, rhs.pinOrder == nil {
+        return true
+      }
+      if lhs.pinOrder == nil, rhs.pinOrder != nil {
+        return false
+      }
+      return bySortingAlgorithm(lhs, rhs, by)
+    case (false, false):
+      return nil
     }
   }
 }

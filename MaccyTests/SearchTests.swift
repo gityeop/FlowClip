@@ -1,6 +1,6 @@
 import XCTest
 import Defaults
-@testable import Maccy
+@testable import FlowClip
 
 class SearchTests: XCTestCase {
   let savedSearchMode = Defaults[.searchMode]
