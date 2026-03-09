@@ -6,6 +6,35 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.14</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li><strong>New Features:</strong>
+    <ul>
+      <li>Added pinned item drag-and-drop so you can reorder pinned items directly in the clipboard history.</li>
+    </ul>
+  </li>
+  <li><strong>Fixes:</strong>
+    <ul>
+      <li>Fixed clipboard panel sizing and layout regressions introduced while adding pinned item drag-and-drop.</li>
+      <li>Clearing a search now restores the panel to the user’s saved window size more reliably, including cases with image or file previews.</li>
+    </ul>
+  </li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Mon, 09 Mar 2026 19:50:35 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.14</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.14/FlowClip.zip"
+        sparkle:version="15"
+        sparkle:shortVersionString="1.0.14"
+        length="7015469"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.13</title>
       <description>
         <![CDATA[
