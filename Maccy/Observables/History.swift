@@ -26,16 +26,14 @@ class History { // swiftlint:disable:this type_body_length
 
   var searchQuery: String = "" {
     didSet {
-      throttler.throttle { [self] in
-        updateItems(search.search(string: searchQuery, within: all))
-
-        if searchQuery.isEmpty {
-          AppState.shared.selection = unpinnedItems.first?.id
-        } else {
-          AppState.shared.highlightFirst()
+      if searchQuery.isEmpty {
+        throttler.cancel()
+        updateSearchResults()
+        AppState.shared.popup.resize(height: AppState.shared.popup.contentHeight)
+      } else {
+        throttler.throttle { [self] in
+          updateSearchResults()
         }
-
-        AppState.shared.popup.needsResize = true
       }
     }
   }
@@ -400,6 +398,18 @@ class History { // swiftlint:disable:this type_body_length
     }
 
     return nil
+  }
+
+  private func updateSearchResults() {
+    updateItems(search.search(string: searchQuery, within: all))
+
+    if searchQuery.isEmpty {
+      AppState.shared.selection = unpinnedItems.first?.id
+    } else {
+      AppState.shared.highlightFirst()
+    }
+
+    AppState.shared.popup.needsResize = true
   }
 
   private func updateItems(_ newItems: [Search.SearchResult]) {

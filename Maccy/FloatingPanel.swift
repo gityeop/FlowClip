@@ -10,6 +10,7 @@ class CustomHostingView<Content: View>: NSHostingView<Content> {
 }
 
 class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
+  private var didObserveUserLiveResize = false
   var isPresented: Bool = false
   var statusBarButton: NSStatusBarButton?
   var closeOnResignKey: Bool = true
@@ -136,6 +137,7 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
 
   func windowWillResize(_ sender: NSWindow, to frameSize: NSSize) -> NSSize {
     if inLiveResize {
+      didObserveUserLiveResize = true
       saveWindowFrame(frame: NSRect(origin: frame.origin, size: frameSize))
     }
 
@@ -147,7 +149,10 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   }
 
   func windowDidEndLiveResize(_ notification: Notification) {
-    saveWindowFrame(frame: frame)
+    if didObserveUserLiveResize {
+      saveWindowFrame(frame: frame)
+    }
+    didObserveUserLiveResize = false
     onEndLiveResize?()
   }
 

@@ -1,5 +1,6 @@
 import XCTest
 import Defaults
+import SwiftUI
 @testable import FlowClip
 
 class HistoryTests: XCTestCase {
@@ -343,6 +344,233 @@ class HistoryTests: XCTestCase {
     item.title = item.generateTitle()
 
     return item
+  }
+}
+
+class HistorySearchTests: XCTestCase {
+  let savedSize = Defaults[.size]
+  let savedSortBy = Defaults[.sortBy]
+  let savedPinTo = Defaults[.pinTo]
+  let history = History.shared
+
+  override func setUpWithError() throws {
+    try super.setUpWithError()
+    runOnMainActor(description: "Reset history") { [self] in
+      self.history.clearAll()
+      self.history.searchQuery = ""
+      AppState.shared.selection = nil
+      Defaults[.size] = 10
+      Defaults[.sortBy] = .firstCopiedAt
+      Defaults[.pinTo] = .top
+    }
+  }
+
+  override func tearDownWithError() throws {
+    runOnMainActor(description: "Restore history") { [self] in
+      self.history.clearAll()
+      self.history.searchQuery = ""
+      AppState.shared.selection = nil
+      Defaults[.size] = self.savedSize
+      Defaults[.sortBy] = self.savedSortBy
+      Defaults[.pinTo] = self.savedPinTo
+    }
+    try super.tearDownWithError()
+  }
+
+  func testClearingSearchRestoresAllItemsImmediately() async {
+    var filteredItemID: UUID!
+    var restoredSelectionID: UUID!
+
+    await MainActor.run {
+      filteredItemID = history.add(historyItem("foo")).id
+      restoredSelectionID = history.add(historyItem("bar")).id
+      history.searchQuery = "foo"
+    }
+
+    waitForSearchThrottle()
+
+    await MainActor.run {
+      XCTAssertEqual(history.items.compactMap { $0.item.text }, ["foo"])
+      XCTAssertEqual(AppState.shared.selection, filteredItemID)
+
+      history.searchQuery = ""
+
+      XCTAssertEqual(history.items.compactMap { $0.item.text }, ["bar", "foo"])
+      XCTAssertEqual(AppState.shared.selection, restoredSelectionID)
+    }
+  }
+
+  func testClearingSearchCancelsPendingThrottledSearch() async {
+    var restoredSelectionID: UUID!
+
+    await MainActor.run {
+      _ = history.add(historyItem("foo"))
+      restoredSelectionID = history.add(historyItem("bar")).id
+      history.searchQuery = "foo"
+      history.searchQuery = ""
+    }
+
+    waitForSearchThrottle()
+
+    await MainActor.run {
+      XCTAssertEqual(history.items.compactMap { $0.item.text }, ["bar", "foo"])
+      XCTAssertEqual(AppState.shared.selection, restoredSelectionID)
+    }
+  }
+
+  private func runOnMainActor(description: String, _ work: @escaping @MainActor () -> Void) {
+    let expectation = expectation(description: description)
+
+    Task { @MainActor in
+      work()
+      expectation.fulfill()
+    }
+
+    wait(for: [expectation], timeout: 2)
+  }
+
+  private func waitForSearchThrottle() {
+    let expectation = expectation(description: "wait for throttled search")
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+      expectation.fulfill()
+    }
+    wait(for: [expectation], timeout: 1)
+  }
+
+  @MainActor
+  private func historyItem(_ value: String) -> HistoryItem {
+    let contents = [
+      HistoryItemContent(
+        type: NSPasteboard.PasteboardType.string.rawValue,
+        value: value.data(using: .utf8)
+      )
+    ]
+    let item = HistoryItem()
+    Storage.shared.context.insert(item)
+    item.contents = contents
+    item.numberOfCopies = 1
+    item.title = item.generateTitle()
+
+    return item
+  }
+}
+
+class PopupSearchHeightTests: XCTestCase {
+  let popup = AppState.shared.popup
+  let history = History.shared
+  let savedWindowSize = Defaults[.windowSize]
+
+  override func setUpWithError() throws {
+    try super.setUpWithError()
+    runOnMainActor(description: "Reset popup") { [self] in
+      popup.reset()
+      popup.contentHeight = 0
+      popup.headerHeight = 0
+      popup.pinnedItemsHeight = 0
+      popup.footerHeight = 0
+      popup.height = 0
+      history.searchQuery = ""
+      Defaults[.windowSize] = NSSize(width: 450, height: 640)
+    }
+  }
+
+  override func tearDownWithError() throws {
+    runOnMainActor(description: "Restore popup") { [self] in
+      popup.reset()
+      popup.contentHeight = 0
+      popup.headerHeight = 0
+      popup.pinnedItemsHeight = 0
+      popup.footerHeight = 0
+      popup.height = 0
+      history.searchQuery = ""
+      Defaults[.windowSize] = savedWindowSize
+    }
+    try super.tearDownWithError()
+  }
+
+  func testEmptyQueryUsesSavedWindowHeight() {
+    runOnMainActor(description: "Empty query uses saved height") { [self] in
+      popup.resize(height: 900)
+
+      XCTAssertEqual(popup.height, 640)
+    }
+  }
+
+  func testClearingSearchRestoresSavedWindowHeight() {
+    runOnMainActor(description: "Restore saved height") { [self] in
+      history.searchQuery = "foo"
+      popup.resize(height: 120)
+      XCTAssertEqual(popup.height, 130)
+
+      history.searchQuery = ""
+
+      XCTAssertEqual(popup.height, 640)
+      popup.resize(height: 900)
+      XCTAssertEqual(popup.height, 640)
+    }
+  }
+
+  func testClearingSearchUsesLatestSavedWindowHeight() {
+    runOnMainActor(description: "Restore latest saved height") { [self] in
+      history.searchQuery = "foo"
+      popup.resize(height: 120)
+      Defaults[.windowSize] = NSSize(width: 450, height: 520)
+      history.searchQuery = ""
+
+      XCTAssertEqual(popup.height, 520)
+    }
+  }
+
+  func testSearchingKeepsContentDrivenHeight() {
+    runOnMainActor(description: "Search remains content driven") { [self] in
+      history.searchQuery = "foo"
+      popup.resize(height: 40)
+
+      XCTAssertEqual(popup.height, 50)
+    }
+  }
+
+  private func runOnMainActor(description: String, _ work: @escaping @MainActor () -> Void) {
+    let expectation = expectation(description: description)
+
+    Task { @MainActor in
+      work()
+      expectation.fulfill()
+    }
+
+    wait(for: [expectation], timeout: 2)
+  }
+}
+
+class FloatingPanelPersistenceTests: XCTestCase {
+  let savedWindowSize = Defaults[.windowSize]
+
+  override func tearDownWithError() throws {
+    Defaults[.windowSize] = savedWindowSize
+    try super.tearDownWithError()
+  }
+
+  func testProgrammaticResizeDoesNotPersistWindowSize() {
+    let expectation = expectation(description: "programmatic resize")
+
+    Task { @MainActor in
+      Defaults[.windowSize] = NSSize(width: 435, height: 423)
+      let panel = FloatingPanel(
+        contentRect: NSRect(origin: .zero, size: Defaults[.windowSize]),
+        identifier: "floating-panel-persistence-test",
+        onClose: {}
+      ) {
+        EmptyView()
+      }
+
+      panel.setFrame(NSRect(origin: .zero, size: NSSize(width: 435, height: 151)), display: false)
+      panel.windowDidEndLiveResize(Notification(name: NSWindow.didEndLiveResizeNotification, object: panel))
+
+      XCTAssertEqual(Defaults[.windowSize].height, 423)
+      expectation.fulfill()
+    }
+
+    wait(for: [expectation], timeout: 2)
   }
 }
 

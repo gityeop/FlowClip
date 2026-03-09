@@ -31,6 +31,7 @@ struct ContentView: View {
           FooterView(footer: appState.footer)
         }
       }
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
       .animation(.default.speed(3), value: appState.history.items)
       .animation(.easeInOut(duration: 0.2), value: appState.searchVisible)
       .padding(.vertical, Popup.verticalPadding)
@@ -45,6 +46,7 @@ struct ContentView: View {
         try? await appState.history.load()
       }
     }
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     .environment(appState)
     .environment(modifierFlags)
     .environment(\.scenePhase, scenePhase)

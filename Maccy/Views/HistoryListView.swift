@@ -1,3 +1,4 @@
+import AppKit
 import Defaults
 import SwiftUI
 import UniformTypeIdentifiers
@@ -9,13 +10,23 @@ struct HistoryListView: View {
   @State private var draggingPinnedItemID: UUID?
   @State private var activePinnedDropIndex: Int?
   @State private var pinnedItemHeights: [UUID: CGFloat] = [:]
+  @State private var unpinnedItemHeights: [UUID: CGFloat] = [:]
 
   @Environment(AppState.self) private var appState
   @Environment(ModifierFlags.self) private var modifierFlags
   @Environment(\.scenePhase) private var scenePhase
 
+  @Default(.imageMaxHeight) private var imageMaxHeight
   @Default(.pinTo) private var pinTo
   @Default(.previewDelay) private var previewDelay
+  @Default(.showApplicationIcons) private var showApplicationIcons
+
+  private static let inlineImageTypes = Set([
+    NSPasteboard.PasteboardType.tiff.rawValue,
+    NSPasteboard.PasteboardType.png.rawValue,
+    NSPasteboard.PasteboardType.jpeg.rawValue,
+    NSPasteboard.PasteboardType.heic.rawValue
+  ])
 
   private var pinnedItems: [HistoryItemDecorator] {
     appState.history.pinnedItems.filter(\.isVisible)
@@ -31,7 +42,7 @@ struct HistoryListView: View {
   }
 
   var body: some View {
-    Group {
+    VStack(spacing: 0) {
       if pinTo == .top {
         pinnedSection(showSeparatorAfterItems: true)
       }
@@ -40,7 +51,7 @@ struct HistoryListView: View {
         ScrollViewReader { proxy in
           LazyVStack(spacing: 0) {
             ForEach(unpinnedItems) { item in
-              HistoryItemView(item: item)
+              unpinnedItemView(item)
             }
           }
           .task(id: appState.scrollTarget) {
@@ -72,21 +83,23 @@ struct HistoryListView: View {
             GeometryReader { geo in
               Color.clear
                 .task(id: geo.size.height) {
-                  try? await Task.sleep(for: .milliseconds(10))
-                  guard !Task.isCancelled else { return }
-
-                  appState.popup.resize(height: geo.size.height)
+                  await resizePopupContentHeight(measuredHeight: geo.size.height)
+                }
+                .task(id: unpinnedItems.map(\.id)) {
+                  await resizePopupContentHeight(measuredHeight: geo.size.height)
                 }
             }
           }
         }
         .contentMargins(.leading, 10, for: .scrollIndicators)
       }
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
       if pinTo == .bottom {
         pinnedSection(showSeparatorAfterItems: false)
       }
     }
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     .onChange(of: draggingPinnedItemID) {
       if draggingPinnedItemID == nil {
         activePinnedDropIndex = nil
@@ -105,6 +118,26 @@ struct HistoryListView: View {
         self.activePinnedDropIndex = nil
       }
     }
+    .onChange(of: unpinnedItems.map(\.id)) {
+      let visibleItemIDs = Set(unpinnedItems.map(\.id))
+      unpinnedItemHeights = unpinnedItemHeights.filter { visibleItemIDs.contains($0.key) }
+    }
+  }
+
+  @ViewBuilder
+  private func unpinnedItemView(_ item: HistoryItemDecorator) -> some View {
+    HistoryItemView(item: item)
+      .background {
+        GeometryReader { geo in
+          Color.clear
+            .task(id: geo.size.height) {
+              let height = geo.size.height
+              if unpinnedItemHeights[item.id] != height {
+                unpinnedItemHeights[item.id] = height
+              }
+            }
+        }
+      }
   }
 
   @ViewBuilder
@@ -227,6 +260,50 @@ struct HistoryListView: View {
   private func clearPinnedDragState() {
     draggingPinnedItemID = nil
     activePinnedDropIndex = nil
+  }
+
+  private func resizePopupContentHeight(measuredHeight: CGFloat) async {
+    try? await Task.sleep(for: .milliseconds(10))
+    guard !Task.isCancelled else { return }
+
+    appState.popup.resize(height: max(measuredHeight, estimatedUnpinnedItemsHeight))
+  }
+
+  private var estimatedUnpinnedItemsHeight: CGFloat {
+    unpinnedItems.reduce(CGFloat.zero) { total, item in
+      total + (unpinnedItemHeights[item.id] ?? estimatedHeight(for: item))
+    }
+  }
+
+  private func estimatedHeight(for item: HistoryItemDecorator) -> CGFloat {
+    if displaysThumbnail(for: item) {
+      let thumbnailHeight = item.thumbnailImage?.size.height ?? CGFloat(imageMaxHeight)
+      return max(Popup.itemHeight, thumbnailHeight + 10)
+    }
+
+    if showApplicationIcons {
+      return max(Popup.itemHeight, 25)
+    }
+
+    return Popup.itemHeight
+  }
+
+  private func displaysThumbnail(for item: HistoryItemDecorator) -> Bool {
+    if item.thumbnailImage != nil {
+      return true
+    }
+
+    if item.item.contents.contains(where: { Self.inlineImageTypes.contains($0.type) }) {
+      return true
+    }
+
+    return item.item.fileURLs.contains { url in
+      guard let fileType = UTType(filenameExtension: url.pathExtension) else {
+        return false
+      }
+
+      return fileType.conforms(to: .image)
+    }
   }
 }
 

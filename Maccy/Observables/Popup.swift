@@ -106,7 +106,12 @@ class Popup {
   }
 
   private func updateHeight() {
-    height = contentHeight + headerHeight + pinnedItemsHeight + footerHeight + (Popup.verticalPadding * 2)
+    let calculatedHeight = contentHeight
+      + headerHeight
+      + pinnedItemsHeight
+      + footerHeight
+      + (Popup.verticalPadding * 2)
+    height = restoredHeight(for: calculatedHeight)
 
     guard let panel = AppState.shared.appDelegate?.panel else {
       needsResize = false
@@ -125,6 +130,14 @@ class Popup {
 
     panel.verticallyResize(to: height)
     needsResize = false
+  }
+
+  private func restoredHeight(for calculatedHeight: CGFloat) -> CGFloat {
+    guard AppState.shared.history.searchQuery.isEmpty else {
+      return calculatedHeight
+    }
+
+    return Defaults[.windowSize].height
   }
 
   private func handleFirstKeyDown() {
