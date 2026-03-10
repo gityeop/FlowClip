@@ -6,6 +6,30 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.15</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li><strong>Improvements:</strong>
+    <ul>
+      <li>Added drag-and-drop reordering for pinned items in the Pins settings tab.</li>
+      <li>Keeps the pin order in Settings in sync with the pinned order shown in the main popup.</li>
+    </ul>
+  </li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Wed, 11 Mar 2026 02:18:06 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.15</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.15/FlowClip.zip"
+        sparkle:version="16"
+        sparkle:shortVersionString="1.0.15"
+        length="7047965"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.14</title>
       <description>
         <![CDATA[
