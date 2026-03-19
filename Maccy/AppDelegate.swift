@@ -601,13 +601,8 @@ struct QueueContentView: View {
     NSSound.playMorseFeedback()
   }
 
-  private var separatorPresetNumber: Int {
-    let presets = QueueSeparator.normalizedPresetSlots(queueSeparatorPresets)
-    guard presets.contains(where: { !$0.isEmpty }) else {
-      return 0
-    }
-
-    return QueueSeparator.normalizedPresetIndex(queueActiveSeparatorPresetIndex) + 1
+  private var separatorPresetPreview: String {
+    QueueSeparator.currentPresetPreview()
   }
 
   var body: some View {
@@ -755,12 +750,14 @@ struct QueueContentView: View {
               }
 
             Button(action: cycleSeparatorPreset) {
-              Text("S\(separatorPresetNumber)")
-                .font(.system(size: 11, weight: .semibold))
+              Text(separatorPresetPreview)
+                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
                 .foregroundColor(.accentColor)
             }
             .buttonStyle(.plain)
-            .frame(width: 24)
+            .frame(width: 42)
             .help("Cycle Separator Preset")
           }
           .padding(.horizontal, 12)

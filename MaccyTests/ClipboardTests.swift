@@ -27,6 +27,8 @@ class ClipboardTests: XCTestCase {
   let savedIgnoredPasteboardTypes = Defaults[.ignoredPasteboardTypes]
   let savedRemoveFormattingByDefault = Defaults[.removeFormattingByDefault]
   let savedQueueAutoSplitText = Defaults[.queueAutoSplitText]
+  let savedQueueSeparatorPresets = Defaults[.queueSeparatorPresets]
+  let savedQueueActiveSeparatorPresetIndex = Defaults[.queueActiveSeparatorPresetIndex]
 
   override func setUp() {
     super.setUp()
@@ -45,6 +47,8 @@ class ClipboardTests: XCTestCase {
     Defaults[.ignoredPasteboardTypes] = savedIgnoredPasteboardTypes
     Defaults[.removeFormattingByDefault] = savedRemoveFormattingByDefault
     Defaults[.queueAutoSplitText] = savedQueueAutoSplitText
+    Defaults[.queueSeparatorPresets] = savedQueueSeparatorPresets
+    Defaults[.queueActiveSeparatorPresetIndex] = savedQueueActiveSeparatorPresetIndex
     QueueClipboard.shared.clear()
     clipboard.clearHooks()
   }
@@ -284,6 +288,28 @@ class ClipboardTests: XCTestCase {
 
     XCTAssertEqual(QueueClipboard.shared.items.count, 3)
     XCTAssertEqual(QueueClipboard.shared.items.compactMap { $0.item.text }, ["- one", "- two", "- three"])
+  }
+
+  func testQueueSeparatorCurrentPresetPreviewKeepsLiteralSpaces() {
+    Defaults[.queueSeparatorPresets] = [", "] + Array(repeating: "", count: QueueSeparator.presetCount - 1)
+    Defaults[.queueActiveSeparatorPresetIndex] = 0
+
+    XCTAssertEqual(QueueSeparator.currentPresetPreview(), "A, B")
+  }
+
+  func testQueueSeparatorCurrentPresetPreviewShowsEmptyPreset() {
+    Defaults[.queueSeparatorPresets] = Array(repeating: "", count: QueueSeparator.presetCount)
+    Defaults[.queueActiveSeparatorPresetIndex] = 0
+
+    XCTAssertEqual(QueueSeparator.currentPresetPreview(), "A∅B")
+  }
+
+  func testQueueSeparatorSamplePreviewKeepsVisibleNewlineGlyph() {
+    XCTAssertEqual(QueueSeparator.samplePreview(for: "\\n"), "A⏎B")
+  }
+
+  func testQueueSeparatorSamplePreviewTruncatesLongSeparator() {
+    XCTAssertEqual(QueueSeparator.samplePreview(for: "-----"), "A---…B")
   }
 
   func testQueueClipboardMoveBeforeItemReordersItems() {

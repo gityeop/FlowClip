@@ -75,6 +75,15 @@ enum QueueSeparator: String, CaseIterable, Identifiable, CustomStringConvertible
     decodeEscapes(currentPresetRawValue())
   }
 
+  static func currentPresetPreview(maxLength: Int = 4) -> String {
+    samplePreview(for: currentPresetRawValue(), maxLength: maxLength)
+  }
+
+  static func samplePreview(for separator: String, maxLength: Int = 4) -> String {
+    let visibleSeparator = visiblePreview(for: decodeEscapes(separator), maxLength: maxLength)
+    return "A\(visibleSeparator.isEmpty ? "∅" : visibleSeparator)B"
+  }
+
   @discardableResult
   static func cycleCurrentPreset() -> Int {
     let presets = normalizedPresetSlots(Defaults[.queueSeparatorPresets])
@@ -105,6 +114,20 @@ enum QueueSeparator: String, CaseIterable, Identifiable, CustomStringConvertible
       .replacingOccurrences(of: "\\n", with: "\n")
       .replacingOccurrences(of: "\\t", with: "\t")
       .replacingOccurrences(of: "\\r", with: "\r")
+  }
+
+  private static func visiblePreview(for separator: String, maxLength: Int) -> String {
+    let preview = separator
+      .replacingOccurrences(of: "\n", with: "⏎")
+      .replacingOccurrences(of: "\t", with: "⇥")
+      .replacingOccurrences(of: "\r", with: "↩")
+
+    let limit = max(1, maxLength)
+    guard preview.count > limit else {
+      return preview
+    }
+
+    return String(preview.prefix(limit - 1)) + "…"
   }
 }
 

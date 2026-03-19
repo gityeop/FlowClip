@@ -6,6 +6,30 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.16</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li><strong>Improvements:</strong>
+    <ul>
+      <li>Queue Clipboard separator button now previews the actual delimiter instead of only showing preset numbers like <code>S1</code> or <code>S2</code>.</li>
+      <li>Separator previews stay compact while still showing newline and tab delimiters with visible symbols.</li>
+    </ul>
+  </li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Fri, 20 Mar 2026 06:40:19 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.16</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.16/FlowClip.zip"
+        sparkle:version="17"
+        sparkle:shortVersionString="1.0.16"
+        length="7051556"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.15</title>
       <description>
         <![CDATA[
