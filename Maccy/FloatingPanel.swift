@@ -71,10 +71,7 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
     backgroundColor = .clear
     titlebarSeparatorStyle = .none
 
-    // Keep the titled frame for resize hit-testing, but hide the chrome.
-    standardWindowButton(.closeButton)?.isHidden = true
-    standardWindowButton(.miniaturizeButton)?.isHidden = true
-    standardWindowButton(.zoomButton)?.isHidden = true
+    suppressStandardWindowButtons()
 
 
     contentView = CustomHostingView(
@@ -189,5 +186,38 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
     }
 
     super.sendEvent(event)
+  }
+
+  private func suppressStandardWindowButtons() {
+    // Keep the titled frame for resize hit-testing, but do not expose traffic lights.
+    for buttonType in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
+      guard let button = standardWindowButton(buttonType) else {
+        continue
+      }
+
+      button.isHidden = true
+      button.isEnabled = false
+      button.alphaValue = 0
+    }
+  }
+
+  @objc var accessibilityCloseButton: Any? {
+    get { nil }
+    set {}
+  }
+
+  @objc var accessibilityZoomButton: Any? {
+    get { nil }
+    set {}
+  }
+
+  @objc var accessibilityMinimizeButton: Any? {
+    get { nil }
+    set {}
+  }
+
+  @objc var accessibilityFullScreenButton: Any? {
+    get { nil }
+    set {}
   }
 }

@@ -572,6 +572,31 @@ class FloatingPanelPersistenceTests: XCTestCase {
 
     wait(for: [expectation], timeout: 2)
   }
+
+  func testFloatingPanelSuppressesStandardTrafficLights() {
+    let expectation = expectation(description: "suppressed traffic lights")
+
+    Task { @MainActor in
+      let panel = FloatingPanel(
+        contentRect: NSRect(origin: .zero, size: NSSize(width: 435, height: 423)),
+        identifier: "floating-panel-traffic-lights-test",
+        onClose: {}
+      ) {
+        EmptyView()
+      }
+
+      XCTAssertNil(panel.accessibilityCloseButton)
+      XCTAssertNil(panel.accessibilityZoomButton)
+      XCTAssertNil(panel.accessibilityMinimizeButton)
+      XCTAssertNil(panel.accessibilityFullScreenButton)
+      XCTAssertFalse(panel.standardWindowButton(.closeButton)?.isEnabled ?? true)
+      XCTAssertFalse(panel.standardWindowButton(.miniaturizeButton)?.isEnabled ?? true)
+      XCTAssertFalse(panel.standardWindowButton(.zoomButton)?.isEnabled ?? true)
+      expectation.fulfill()
+    }
+
+    wait(for: [expectation], timeout: 2)
+  }
 }
 
 class HistoryPinnedReorderTests: XCTestCase {
