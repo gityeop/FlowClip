@@ -434,7 +434,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     KeyboardShortcuts.onKeyDown(for: .queueCycleSeparatorPreset) {
-      Defaults[.queueSeparator] = .custom
       _ = QueueSeparator.cycleCurrentPreset()
       NSSound.playMorseFeedback()
     }
@@ -510,6 +509,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         presets: presets
       )
       Defaults[.migrations]["2026-02-23-queue-separator-presets"] = true
+    }
+
+    if Defaults[.migrations]["2026-04-17-queue-separator-preset-modes"] != true {
+      let presets = QueueSeparator.normalizedPresetSlots(Defaults[.queueSeparatorPresets])
+      Defaults[.queueSeparatorPresets] = presets
+      Defaults[.queueSeparatorPresetModes] = QueueSeparator.migrateLegacyPresetModes(
+        Defaults[.queueSeparatorPresetModes],
+        presetValues: presets,
+        activePresetIndex: Defaults[.queueActiveSeparatorPresetIndex],
+        currentSeparator: Defaults[.queueSeparator]
+      )
+      _ = QueueSeparator.selectPreset(Defaults[.queueActiveSeparatorPresetIndex])
+      Defaults[.migrations]["2026-04-17-queue-separator-preset-modes"] = true
     }
 
     // The following defaults are not used in Maccy 2.x
@@ -596,7 +608,6 @@ struct QueueContentView: View {
   }
 
   private func cycleSeparatorPreset() {
-    queueSeparator = .custom
     queueActiveSeparatorPresetIndex = QueueSeparator.cycleCurrentPreset()
     NSSound.playMorseFeedback()
   }

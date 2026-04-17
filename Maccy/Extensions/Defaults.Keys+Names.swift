@@ -10,6 +10,7 @@ enum QueueSeparator: String, CaseIterable, Identifiable, CustomStringConvertible
 
   static let presetCount = 9
   static let defaultPresetSlots = [", "] + Array(repeating: "", count: presetCount - 1)
+  static let defaultPresetModes = Array(repeating: QueueSeparator.custom.rawValue, count: presetCount)
 
   var id: Self { self }
 
@@ -39,8 +40,7 @@ enum QueueSeparator: String, CaseIterable, Identifiable, CustomStringConvertible
     case .comma:
       return ","
     case .custom:
-      let presetValue = Self.currentPresetValue()
-      return presetValue.isEmpty ? nil : presetValue
+      return Self.effectiveValue(for: .custom, rawPresetValue: Defaults[.customQueueSeparator])
     }
   }
 
@@ -50,6 +50,15 @@ enum QueueSeparator: String, CaseIterable, Identifiable, CustomStringConvertible
       normalized.append(contentsOf: repeatElement("", count: presetCount - normalized.count))
     }
     return normalized
+  }
+
+  static func normalizedPresetModes(_ presetModes: [String]) -> [String] {
+    var normalized = Array(presetModes.prefix(presetCount))
+    if normalized.count < presetCount {
+      normalized.append(contentsOf: defaultPresetModes.dropFirst(normalized.count))
+    }
+
+    return normalized.map { QueueSeparator(rawValue: $0)?.rawValue ?? QueueSeparator.custom.rawValue }
   }
 
   static func normalizedPresetIndex(_ index: Int, presets: [String]? = nil) -> Int {
@@ -65,18 +74,34 @@ enum QueueSeparator: String, CaseIterable, Identifiable, CustomStringConvertible
     normalizedPresetIndex(Defaults[.queueActiveSeparatorPresetIndex]) + 1
   }
 
+  static func presetMode(at index: Int, presetModes: [String]? = nil) -> QueueSeparator {
+    let normalizedModes = normalizedPresetModes(presetModes ?? Defaults[.queueSeparatorPresetModes])
+    let normalizedIndex = normalizedPresetIndex(index, presets: normalizedModes)
+    return QueueSeparator(rawValue: normalizedModes[normalizedIndex]) ?? .custom
+  }
+
+  static func currentPresetMode() -> QueueSeparator {
+    let presets = normalizedPresetSlots(Defaults[.queueSeparatorPresets])
+    let index = normalizedPresetIndex(Defaults[.queueActiveSeparatorPresetIndex], presets: presets)
+    return presetMode(at: index)
+  }
+
   static func currentPresetRawValue() -> String {
     let presets = normalizedPresetSlots(Defaults[.queueSeparatorPresets])
     let index = normalizedPresetIndex(Defaults[.queueActiveSeparatorPresetIndex], presets: presets)
     return presets[index]
   }
 
-  static func currentPresetValue() -> String {
-    decodeEscapes(currentPresetRawValue())
+  static func currentPresetValue() -> String? {
+    effectiveValue(for: currentPresetMode(), rawPresetValue: currentPresetRawValue())
   }
 
   static func currentPresetPreview(maxLength: Int = 4) -> String {
-    samplePreview(for: currentPresetRawValue(), maxLength: maxLength)
+    samplePreview(
+      for: currentPresetMode(),
+      rawPresetValue: currentPresetRawValue(),
+      maxLength: maxLength
+    )
   }
 
   static func samplePreview(for separator: String, maxLength: Int = 4) -> String {
@@ -84,15 +109,49 @@ enum QueueSeparator: String, CaseIterable, Identifiable, CustomStringConvertible
     return "A\(visibleSeparator.isEmpty ? "∅" : visibleSeparator)B"
   }
 
+  static func migrateLegacyPresetModes(
+    _ presetModes: [String],
+    presetValues: [String],
+    activePresetIndex: Int,
+    currentSeparator: QueueSeparator
+  ) -> [String] {
+    let normalizedPresetValues = normalizedPresetSlots(presetValues)
+    var migratedModes = normalizedPresetModes(presetModes)
+
+    for index in normalizedPresetValues.indices where !normalizedPresetValues[index].isEmpty {
+      migratedModes[index] = QueueSeparator.custom.rawValue
+    }
+
+    let normalizedActiveIndex = normalizedPresetIndex(activePresetIndex, presets: normalizedPresetValues)
+    migratedModes[normalizedActiveIndex] = currentSeparator.rawValue
+    return migratedModes
+  }
+
+  @discardableResult
+  static func selectPreset(_ index: Int) -> Int {
+    let presets = normalizedPresetSlots(Defaults[.queueSeparatorPresets])
+    let normalizedIndex = normalizedPresetIndex(index, presets: presets)
+    let presetMode = presetMode(at: normalizedIndex)
+
+    Defaults[.queueActiveSeparatorPresetIndex] = normalizedIndex
+    Defaults[.customQueueSeparator] = presets[normalizedIndex]
+    Defaults[.queueSeparator] = presetMode
+    return normalizedIndex
+  }
+
   @discardableResult
   static func cycleCurrentPreset() -> Int {
     let presets = normalizedPresetSlots(Defaults[.queueSeparatorPresets])
-    let nonEmptyPresetIndices = presets.enumerated().compactMap { $0.element.isEmpty ? nil : $0.offset }
-    let cycleTargets = nonEmptyPresetIndices.isEmpty ? Array(presets.indices) : nonEmptyPresetIndices
+    let presetModes = normalizedPresetModes(Defaults[.queueSeparatorPresetModes])
+    let cycleTargets = presets.indices.filter {
+      isPresetConfigured(
+        mode: presetMode(at: $0, presetModes: presetModes),
+        rawPresetValue: presets[$0]
+      )
+    }
 
     guard let firstTarget = cycleTargets.first else {
-      Defaults[.queueActiveSeparatorPresetIndex] = 0
-      return 0
+      return selectPreset(0)
     }
 
     let currentIndex = normalizedPresetIndex(Defaults[.queueActiveSeparatorPresetIndex], presets: presets)
@@ -105,8 +164,7 @@ enum QueueSeparator: String, CaseIterable, Identifiable, CustomStringConvertible
       nextIndex = firstTarget
     }
 
-    Defaults[.queueActiveSeparatorPresetIndex] = nextIndex
-    return nextIndex
+    return selectPreset(nextIndex)
   }
 
   private static func decodeEscapes(_ value: String) -> String {
@@ -114,6 +172,43 @@ enum QueueSeparator: String, CaseIterable, Identifiable, CustomStringConvertible
       .replacingOccurrences(of: "\\n", with: "\n")
       .replacingOccurrences(of: "\\t", with: "\t")
       .replacingOccurrences(of: "\\r", with: "\r")
+  }
+
+  private static func effectiveValue(for separator: QueueSeparator, rawPresetValue: String) -> String? {
+    switch separator {
+    case .none:
+      return nil
+    case .space:
+      return " "
+    case .newline:
+      return "\n"
+    case .comma:
+      return ","
+    case .custom:
+      let decodedValue = decodeEscapes(rawPresetValue)
+      return decodedValue.isEmpty ? nil : decodedValue
+    }
+  }
+
+  private static func isPresetConfigured(mode: QueueSeparator, rawPresetValue: String) -> Bool {
+    switch mode {
+    case .custom:
+      return !rawPresetValue.isEmpty
+    default:
+      return true
+    }
+  }
+
+  private static func samplePreview(
+    for separator: QueueSeparator,
+    rawPresetValue: String,
+    maxLength: Int
+  ) -> String {
+    let visibleSeparator = visiblePreview(
+      for: effectiveValue(for: separator, rawPresetValue: rawPresetValue) ?? "",
+      maxLength: maxLength
+    )
+    return "A\(visibleSeparator.isEmpty ? "∅" : visibleSeparator)B"
   }
 
   private static func visiblePreview(for separator: String, maxLength: Int) -> String {
@@ -148,6 +243,10 @@ extension Defaults.Keys {
   static let queueSeparatorPresets = Key<[String]>(
     "queueSeparatorPresets",
     default: QueueSeparator.defaultPresetSlots
+  )
+  static let queueSeparatorPresetModes = Key<[String]>(
+    "queueSeparatorPresetModes",
+    default: QueueSeparator.defaultPresetModes
   )
   static let queueActiveSeparatorPresetIndex = Key<Int>("queueActiveSeparatorPresetIndex", default: 0)
   static let enabledPasteboardTypes = Key<Set<NSPasteboard.PasteboardType>>(

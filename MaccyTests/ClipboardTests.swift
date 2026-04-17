@@ -27,7 +27,10 @@ class ClipboardTests: XCTestCase {
   let savedIgnoredPasteboardTypes = Defaults[.ignoredPasteboardTypes]
   let savedRemoveFormattingByDefault = Defaults[.removeFormattingByDefault]
   let savedQueueAutoSplitText = Defaults[.queueAutoSplitText]
+  let savedQueueSeparator = Defaults[.queueSeparator]
+  let savedCustomQueueSeparator = Defaults[.customQueueSeparator]
   let savedQueueSeparatorPresets = Defaults[.queueSeparatorPresets]
+  let savedQueueSeparatorPresetModes = Defaults[.queueSeparatorPresetModes]
   let savedQueueActiveSeparatorPresetIndex = Defaults[.queueActiveSeparatorPresetIndex]
 
   override func setUp() {
@@ -47,7 +50,10 @@ class ClipboardTests: XCTestCase {
     Defaults[.ignoredPasteboardTypes] = savedIgnoredPasteboardTypes
     Defaults[.removeFormattingByDefault] = savedRemoveFormattingByDefault
     Defaults[.queueAutoSplitText] = savedQueueAutoSplitText
+    Defaults[.queueSeparator] = savedQueueSeparator
+    Defaults[.customQueueSeparator] = savedCustomQueueSeparator
     Defaults[.queueSeparatorPresets] = savedQueueSeparatorPresets
+    Defaults[.queueSeparatorPresetModes] = savedQueueSeparatorPresetModes
     Defaults[.queueActiveSeparatorPresetIndex] = savedQueueActiveSeparatorPresetIndex
     QueueClipboard.shared.clear()
     clipboard.clearHooks()
@@ -292,6 +298,8 @@ class ClipboardTests: XCTestCase {
 
   func testQueueSeparatorCurrentPresetPreviewKeepsLiteralSpaces() {
     Defaults[.queueSeparatorPresets] = [", "] + Array(repeating: "", count: QueueSeparator.presetCount - 1)
+    Defaults[.queueSeparatorPresetModes] = [QueueSeparator.custom.rawValue]
+      + Array(repeating: QueueSeparator.custom.rawValue, count: QueueSeparator.presetCount - 1)
     Defaults[.queueActiveSeparatorPresetIndex] = 0
 
     XCTAssertEqual(QueueSeparator.currentPresetPreview(), "A, B")
@@ -299,9 +307,19 @@ class ClipboardTests: XCTestCase {
 
   func testQueueSeparatorCurrentPresetPreviewShowsEmptyPreset() {
     Defaults[.queueSeparatorPresets] = Array(repeating: "", count: QueueSeparator.presetCount)
+    Defaults[.queueSeparatorPresetModes] = QueueSeparator.defaultPresetModes
     Defaults[.queueActiveSeparatorPresetIndex] = 0
 
     XCTAssertEqual(QueueSeparator.currentPresetPreview(), "A∅B")
+  }
+
+  func testQueueSeparatorCurrentPresetPreviewUsesBuiltinMode() {
+    Defaults[.queueSeparatorPresets] = [" / "] + Array(repeating: "", count: QueueSeparator.presetCount - 1)
+    Defaults[.queueSeparatorPresetModes] = [QueueSeparator.space.rawValue]
+      + Array(repeating: QueueSeparator.custom.rawValue, count: QueueSeparator.presetCount - 1)
+    Defaults[.queueActiveSeparatorPresetIndex] = 0
+
+    XCTAssertEqual(QueueSeparator.currentPresetPreview(), "A B")
   }
 
   func testQueueSeparatorSamplePreviewKeepsVisibleNewlineGlyph() {
@@ -310,6 +328,70 @@ class ClipboardTests: XCTestCase {
 
   func testQueueSeparatorSamplePreviewTruncatesLongSeparator() {
     XCTAssertEqual(QueueSeparator.samplePreview(for: "-----"), "A---…B")
+  }
+
+  func testQueueSeparatorSelectPresetSyncsSeparatorModeAndCustomValue() {
+    Defaults[.queueSeparatorPresets] = [" / ", "\\n"] + Array(repeating: "", count: QueueSeparator.presetCount - 2)
+    Defaults[.queueSeparatorPresetModes] = [QueueSeparator.space.rawValue, QueueSeparator.custom.rawValue]
+      + Array(repeating: QueueSeparator.custom.rawValue, count: QueueSeparator.presetCount - 2)
+
+    QueueSeparator.selectPreset(1)
+
+    XCTAssertEqual(Defaults[.queueActiveSeparatorPresetIndex], 1)
+    XCTAssertEqual(Defaults[.queueSeparator], .custom)
+    XCTAssertEqual(Defaults[.customQueueSeparator], "\\n")
+    XCTAssertEqual(Defaults[.queueSeparator].value, "\n")
+  }
+
+  func testQueueSeparatorCycleCurrentPresetSkipsEmptyCustomPresets() {
+    Defaults[.queueSeparatorPresets] = ["", "", "\\n"] + Array(repeating: "", count: QueueSeparator.presetCount - 3)
+    Defaults[.queueSeparatorPresetModes] = [QueueSeparator.custom.rawValue, QueueSeparator.space.rawValue, QueueSeparator.custom.rawValue]
+      + Array(repeating: QueueSeparator.custom.rawValue, count: QueueSeparator.presetCount - 3)
+    Defaults[.queueActiveSeparatorPresetIndex] = 1
+    Defaults[.queueSeparator] = .space
+
+    let nextIndex = QueueSeparator.cycleCurrentPreset()
+
+    XCTAssertEqual(nextIndex, 2)
+    XCTAssertEqual(Defaults[.queueSeparator], .custom)
+    XCTAssertEqual(Defaults[.customQueueSeparator], "\\n")
+  }
+
+  func testQueueSeparatorCycleCurrentPresetKeepsBuiltInAndCustomModesAligned() {
+    Defaults[.queueSeparatorPresets] = ["P1", "P2", "P3", "P4", ""] + Array(repeating: "", count: QueueSeparator.presetCount - 5)
+    Defaults[.queueSeparatorPresetModes] = [
+      QueueSeparator.custom.rawValue,
+      QueueSeparator.custom.rawValue,
+      QueueSeparator.custom.rawValue,
+      QueueSeparator.custom.rawValue,
+      QueueSeparator.none.rawValue
+    ] + Array(repeating: QueueSeparator.custom.rawValue, count: QueueSeparator.presetCount - 5)
+    Defaults[.queueActiveSeparatorPresetIndex] = 3
+    Defaults[.queueSeparator] = .custom
+    Defaults[.customQueueSeparator] = "P4"
+
+    XCTAssertEqual(QueueSeparator.cycleCurrentPreset(), 4)
+    XCTAssertEqual(Defaults[.queueSeparator], .none)
+    XCTAssertNil(QueueSeparator.currentPresetValue())
+
+    XCTAssertEqual(QueueSeparator.cycleCurrentPreset(), 0)
+    XCTAssertEqual(Defaults[.queueSeparator], .custom)
+    XCTAssertEqual(Defaults[.customQueueSeparator], "P1")
+    XCTAssertEqual(QueueSeparator.currentPresetValue(), "P1")
+  }
+
+  func testQueueSeparatorMigrateLegacyPresetModesPreservesExistingPresetStrings() {
+    let presets = [" / ", "\\n"] + Array(repeating: "", count: QueueSeparator.presetCount - 2)
+
+    let migratedModes = QueueSeparator.migrateLegacyPresetModes(
+      QueueSeparator.defaultPresetModes,
+      presetValues: presets,
+      activePresetIndex: 1,
+      currentSeparator: .space
+    )
+
+    XCTAssertEqual(migratedModes[0], QueueSeparator.custom.rawValue)
+    XCTAssertEqual(migratedModes[1], QueueSeparator.space.rawValue)
   }
 
   func testQueueClipboardMoveBeforeItemReordersItems() {

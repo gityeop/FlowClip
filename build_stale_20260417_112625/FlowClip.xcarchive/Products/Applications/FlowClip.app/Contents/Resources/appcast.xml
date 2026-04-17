@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>FlowClip</title>
+    <link>https://raw.githubusercontent.com/gityeop/FlowClip/master/appcast.xml</link>
+    <description>Most recent changes with links to updates.</description>
+    <language>en</language>
+    <item>
+      <title>1.0.16</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li><strong>Improvements:</strong>
+    <ul>
+      <li>Queue Clipboard separator button now previews the actual delimiter instead of only showing preset numbers like <code>S1</code> or <code>S2</code>.</li>
+      <li>Separator previews stay compact while still showing newline and tab delimiters with visible symbols.</li>
+    </ul>
+  </li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Fri, 20 Mar 2026 06:40:19 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.16</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.16/FlowClip.zip"
+        sparkle:version="17"
+        sparkle:shortVersionString="1.0.16"
+        length="7051556"
+        type="application/octet-stream" />
+    </item>
+    <item>
+      <title>1.0.15</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li><strong>Improvements:</strong>
+    <ul>
+      <li>Added drag-and-drop reordering for pinned items in the Pins settings tab.</li>
+      <li>Keeps the pin order in Settings in sync with the pinned order shown in the main popup.</li>
+    </ul>
+  </li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Wed, 11 Mar 2026 02:18:06 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.15</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.15/FlowClip.zip"
+        sparkle:version="16"
+        sparkle:shortVersionString="1.0.15"
+        length="7047965"
+        type="application/octet-stream" />
+    </item>
+    <item>
+      <title>1.0.14</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li><strong>New Features:</strong>
+    <ul>
+      <li>Added pinned item drag-and-drop so you can reorder pinned items directly in the clipboard history.</li>
+    </ul>
+  </li>
+  <li><strong>Fixes:</strong>
+    <ul>
+      <li>Fixed clipboard panel sizing and layout regressions introduced while adding pinned item drag-and-drop.</li>
+      <li>Clearing a search now restores the panel to the user’s saved window size more reliably, including cases with image or file previews.</li>
+    </ul>
+  </li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Mon, 09 Mar 2026 19:50:35 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.14</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.14/FlowClip.zip"
+        sparkle:version="15"
+        sparkle:shortVersionString="1.0.14"
+        length="7015469"
+        type="application/octet-stream" />
+    </item>
+    <item>
+      <title>1.0.13</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li>Queue Clipboard title text area is now draggable for moving the window.</li>
+  <li>Added Queue paste separator presets (up to 9) with cycling support.</li>
+  <li>Added separator preset indicator in Queue controls (next to FIFO/LIFO).</li>
+  <li>Added preset save/delete management in General settings.</li>
+  <li>Added a shortcut setting to cycle separator presets.</li>
+  <li>When all presets are empty, Queue controls now show <strong>S0</strong> (no selected preset).</li>
+  <li>Updated funding source to GitHub Sponsors.</li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Mon, 23 Feb 2026 23:16:17 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.13</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.13/FlowClip.zip"
+        sparkle:version="14"
+        sparkle:shortVersionString="1.0.13"
+        length="6958101"
+        type="application/octet-stream" />
+    </item>
+    <item>
+      <title>1.0.12</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li>Show image previews in clipboard history when copying image files (png/jpg/jpeg/heic) from Finder.</li>
+  <li>Keep non-image file copy behavior unchanged.</li>
+  <li>Internal stability update around file URL handling for image items.</li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Wed, 18 Feb 2026 19:12:31 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.12</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.12/FlowClip.zip"
+        sparkle:version="13"
+        sparkle:shortVersionString="1.0.12"
+        length="6932910"
+        type="application/octet-stream" />
+    </item>
+    <item>
+      <title>1.0.11</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li><strong>Hotfix:</strong>
+    <ul>
+      <li>Fixed Queue Clipboard item drag reordering so item order updates reliably while dragging.</li>
+      <li>Thanks to Richard Simmonds for reporting this issue.</li>
+    </ul>
+  </li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Wed, 18 Feb 2026 11:25:33 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.11</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.11/FlowClip.zip"
+        sparkle:version="12"
+        sparkle:shortVersionString="1.0.11"
+        length="6931141"
+        type="application/octet-stream" />
+    </item>
+    <item>
+      <title>1.0.10</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li><strong>Improvements:</strong>
+    <ul>
+      <li>Improved click behavior in Queue Clipboard controls so interactions feel more forgiving.</li>
+    </ul>
+  </li>
+  <li><strong>Bug Fixes:</strong>
+    <ul>
+      <li>Fixed a panel focus issue where clicking controls or items could require an extra click when the panel was not focused.</li>
+      <li>Fixed Queue Clipboard control interaction so segmented control areas are easier to click without changing the visual design.</li>
+    </ul>
+  </li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Tue, 17 Feb 2026 23:59:42 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.10</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.10/FlowClip.zip"
+        sparkle:version="11"
+        sparkle:shortVersionString="1.0.10"
+        length="6918140"
+        type="application/octet-stream" />
+    </item>
+    <item>
+      <title>1.0.9</title>
+      <description>
+        <![CDATA[
+          <ul>
+            <li><strong>New Features:</strong>
+              <ul>
+                <li><strong>Queue Auto-Split:</strong> Copied multi-line text can now be automatically split into separate queue items, including single newline-separated lines.</li>
+                <li><strong>Queue Controls:</strong> Added a dedicated Auto-Split toggle button in Queue Clipboard controls and shortcut options for Auto-Split and LIFO/FIFO order toggling.</li>
+              </ul>
+            </li>
+            <li><strong>Improvements:</strong>
+              <ul>
+                <li><strong>Audio Feedback:</strong> Queue toggles and clear action now play consistent Morse sound feedback.</li>
+              </ul>
+            </li>
+            <li><strong>Bug Fixes:</strong>
+              <ul>
+                <li><strong>Paste Without Formatting:</strong> Queue paste now correctly respects the plain-text paste preference.</li>
+                <li><strong>General Settings Layout:</strong> Fixed clipping/overflow issues in behavior and custom separator controls in localized UI.</li>
+              </ul>
+            </li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Wed, 11 Feb 2026 03:28:49 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.9</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.9/FlowClip.zip"
+        sparkle:version="10"
+        sparkle:shortVersionString="1.0.9"
+        length="6908309"
+        type="application/octet-stream" />
+    </item>
+    <item>
+      <title>1.0.8</title>
+      <description>
+        <![CDATA[
+          <ul>
+            <li><strong>New Features:</strong>
+              <ul>
+                <li><strong>Queue Reordering:</strong> You can now drag and drop items in the Queue Clipboard to reorder them before pasting.</li>
+              </ul>
+            </li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Fri, 06 Feb 2026 21:40:00 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.8</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.8/FlowClip.zip"
+        sparkle:version="9"
+        sparkle:shortVersionString="1.0.8"
+        length="6895116"
+        type="application/octet-stream" />
+    </item>
+    <item>
+      <title>1.0.7</title>
+      <description>
+        <![CDATA[
+          <ul>
+            <li><strong>New Features:</strong>
+              <ul>
+                <li><strong>Queue Clipboard Redesign:</strong> A cleaner, modern look with a floating bottom bar for controls and a separate floating clear button.</li>
+                <li><strong>LIFO/FIFO Toggle:</strong> You can now switch between Last-In-First-Out (LIFO) and First-In-First-Out (FIFO) paste order in the Queue Clipboard.</li>
+              </ul>
+            </li>
+            <li><strong>Improvements:</strong>
+              <ul>
+                <li><strong>Focus Handling:</strong> When using Cmd+C or Cmd+V within the Queue Clipboard, FlowClip now temporarily yields focus to the background app to ensure the action is performed on the correct target.</li>
+              </ul>
+            </li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Mon, 02 Feb 2026 03:57:00 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.7</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.7/FlowClip.zip"
+        sparkle:version="8"
+        sparkle:shortVersionString="1.0.7"
+        length="6892907"
+        type="application/octet-stream" />
+    </item>
+    <item>
+      <title>1.0.6</title>
+      <description>
+        <![CDATA[
+          <ul>
+            <li><strong>Enhancements:</strong>
+              <ul>
+                <li><strong>Queue Clipboard Redesign:</strong> The Queue Clipboard window has been redesigned for a better user experience.</li>
+                <li><strong>Custom Separator:</strong> Added options to customize the separator when pasting multiple items.</li>
+              </ul>
+            </li>
+            <li><strong>Bug Fixes:</strong>
+              <ul>
+                <li><strong>Window Height:</strong> Fixed unexpected window shrinking; it now respects your preferred size.</li>
+                <li><strong>Settings Window:</strong> Fixed app quitting when closing Settings; now stays in the menu bar.</li>
+              </ul>
+            </li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Sun, 01 Feb 2026 17:15:00 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.6</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.6/FlowClip.zip"
+        sparkle:version="7"
+        sparkle:shortVersionString="1.0.6"
+        length="6878326"
+        type="application/octet-stream" />
+    </item>
+    <item>
+      <title>1.0.5</title>
+      <description>
+        <![CDATA[
+          <ul>
+            <li>Fixed black corners on App Icon by correcting transparency rendering.</li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Thu, 22 Jan 2026 22:50:00 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.5</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.5/FlowClip_1.0.5.zip"
+        sparkle:version="6"
+        sparkle:shortVersionString="1.0.5"
+        length="8388608"
+        type="application/octet-stream" />
+    </item>
+  </channel>
+</rss>
