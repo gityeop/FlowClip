@@ -214,7 +214,20 @@ awk -v item_file="$ITEM_FILE" '
 mv "$APPCAST_TMP" "$APPCAST_PATH"
 
 echo "==> Committing release changes"
-(cd "$ROOT_DIR" && git add -A && git commit -m "release: $TAG")
+(
+  cd "$ROOT_DIR"
+  git add -A
+
+  # Keep locally archived build outputs out of release commits.
+  shopt -s nullglob
+  stale_build_paths=(build_stale_*)
+  shopt -u nullglob
+  if (( ${#stale_build_paths[@]} > 0 )); then
+    git reset -q -- "${stale_build_paths[@]}"
+  fi
+
+  git commit -m "release: $TAG"
+)
 
 echo "==> Pushing release commit"
 (cd "$ROOT_DIR" && git push origin master)

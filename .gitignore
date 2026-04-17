@@ -4,6 +4,7 @@ Maccy.xcodeproj/project.xcworkspace/xcshareddata
 .DS_Store
 Maccy/.DS_Store
 build/
+build_stale_*/
 node_modules/
 build_debug/
 .agent/
