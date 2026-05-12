@@ -71,6 +71,7 @@ class HistoryItem {
   var numberOfCopies: Int = 1
   var pin: String?
   var pinOrder: Int?
+  var recognizedText: String?
   var title = ""
 
   @Relationship(deleteRule: .cascade, inverse: \HistoryItemContent.item)
@@ -94,9 +95,7 @@ class HistoryItem {
 
   func generateTitle() -> String {
     guard image == nil else {
-      Task {
-        self.performTextRecognition()
-      }
+      recognizeTextForSearchIfNeeded()
       return ""
     }
 
@@ -236,31 +235,39 @@ class HistoryItem {
       .compactMap { $0.value }
   }
 
-  private func performTextRecognition() {
-    guard let cgImage = image?.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+  private func recognizeTextForSearchIfNeeded() {
+    guard recognizedText == nil,
+          let cgImage = image?.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
       return
     }
 
+    DispatchQueue.global(qos: .utility).async { [weak self] in
+      let recognizedText = Self.recognizeText(in: cgImage)
+      DispatchQueue.main.async {
+        self?.recognizedText = recognizedText
+        try? Storage.shared.context.save()
+      }
+    }
+  }
+
+  private static func recognizeText(in cgImage: CGImage) -> String {
     let requestHandler = VNImageRequestHandler(cgImage: cgImage)
-    let request = VNRecognizeTextRequest(completionHandler: recognizeTextHandler)
-    request.recognitionLevel = .fast
+    let request = VNRecognizeTextRequest()
+    request.recognitionLevel = .accurate
+    request.usesLanguageCorrection = true
+    request.automaticallyDetectsLanguage = true
 
     do {
       try requestHandler.perform([request])
     } catch {
       print("Unable to perform the request: \(error).")
-    }
-  }
-
-  private func recognizeTextHandler(request: VNRequest, error: Error?) {
-    guard let observations = request.results as? [VNRecognizedTextObservation] else {
-      return
+      return ""
     }
 
-    let recognizedStrings = observations.compactMap { observation in
+    let recognizedStrings = request.results?.compactMap { observation in
       return observation.topCandidates(1).first?.string
-    }
+    } ?? []
 
-    self.title = recognizedStrings.joined(separator: "\n")
+    return recognizedStrings.joined(separator: "\n")
   }
 }

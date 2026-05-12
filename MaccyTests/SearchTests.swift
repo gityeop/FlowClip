@@ -233,6 +233,47 @@ class SearchTests: XCTestCase {
     XCTAssertEqual(search("m"), [])
   }
 
+  @MainActor
+  func testSearchesRecognizedTextWithoutHighlightingTitle() {
+    Defaults[.searchMode] = Search.Mode.exact
+    let item = historyItemWithTitle("")
+    item.recognizedText = "receipt total 123"
+    items = [HistoryItemDecorator(item)]
+
+    XCTAssertEqual(search("receipt"), [
+      Search.SearchResult(score: nil, object: items[0], ranges: [])
+    ])
+  }
+
+  @MainActor
+  func testFuzzySearchesRecognizedTextWithoutHighlightingTitle() {
+    Defaults[.searchMode] = Search.Mode.fuzzy
+    let item = historyItemWithTitle("")
+    item.recognizedText = "receipt total 123"
+    items = [HistoryItemDecorator(item)]
+
+    let results = search("receipt")
+    XCTAssertEqual(results.count, 1)
+    XCTAssertEqual(results[0].object, items[0])
+    XCTAssertEqual(results[0].ranges, [])
+  }
+
+  @MainActor
+  func testTitleMatchesTakePriorityOverRecognizedText() {
+    Defaults[.searchMode] = Search.Mode.exact
+    let item = historyItemWithTitle("receipt")
+    item.recognizedText = "receipt total 123"
+    items = [HistoryItemDecorator(item)]
+
+    XCTAssertEqual(search("receipt"), [
+      Search.SearchResult(
+        score: nil,
+        object: items[0],
+        ranges: [range(from: 0, to: 6, in: items[0])]
+      )
+    ])
+  }
+
   private func search(_ string: String) -> [Search.SearchResult] {
     return Search().search(string: string, within: items)
   }

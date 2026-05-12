@@ -58,6 +58,7 @@ class HistoryItemDecorator: Identifiable, Hashable {
 
   // 10k characters seems to be more than enough on large displays
   var text: String { item.previewableText.shortened(to: 10_000) }
+  var recognizedText: String { item.recognizedText ?? "" }
 
   var isPinned: Bool { item.pin != nil }
   var isUnpinned: Bool { item.pin == nil }

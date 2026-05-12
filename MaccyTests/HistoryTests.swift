@@ -1,4 +1,5 @@
 import XCTest
+import AppKit
 import Defaults
 import SwiftUI
 @testable import FlowClip
@@ -330,6 +331,19 @@ class HistoryTests: XCTestCase {
   }
 
   @MainActor
+  func testLoadMigratesImageTitleToRecognizedText() async throws {
+    let image = try XCTUnwrap(NSImage(named: "NSBluetoothTemplate"))
+    let item = historyItem(image)
+    item.title = "old OCR text"
+    try? Storage.shared.context.save()
+
+    try await history.load()
+
+    XCTAssertEqual(history.items[0].item.title, "")
+    XCTAssertEqual(history.items[0].item.recognizedText, "old OCR text")
+  }
+
+  @MainActor
   private func historyItem(_ value: String) -> HistoryItem {
     let contents = [
       HistoryItemContent(
@@ -342,6 +356,22 @@ class HistoryTests: XCTestCase {
     item.contents = contents
     item.numberOfCopies = 1
     item.title = item.generateTitle()
+
+    return item
+  }
+
+  @MainActor
+  private func historyItem(_ value: NSImage) -> HistoryItem {
+    let contents = [
+      HistoryItemContent(
+        type: NSPasteboard.PasteboardType.tiff.rawValue,
+        value: value.tiffRepresentation!
+      )
+    ]
+    let item = HistoryItem()
+    Storage.shared.context.insert(item)
+    item.contents = contents
+    item.numberOfCopies = 1
 
     return item
   }

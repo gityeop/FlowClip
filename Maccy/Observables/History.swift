@@ -108,6 +108,7 @@ class History { // swiftlint:disable:this type_body_length
   func load() async throws {
     let descriptor = FetchDescriptor<HistoryItem>()
     let results = try Storage.shared.context.fetch(descriptor)
+    migrateImageTitlesToRecognizedText(in: results)
     let sortedResults = sorter.sort(results)
     normalizePinnedOrder(in: sortedResults)
     all = sortedResults.map { HistoryItemDecorator($0) }
@@ -138,6 +139,22 @@ class History { // swiftlint:disable:this type_body_length
     try? Storage.shared.context.save()
   }
 
+  @MainActor
+  private func migrateImageTitlesToRecognizedText(in historyItems: [HistoryItem]) {
+    var needsSave = false
+
+    // Older builds stored image OCR output in title. Keep it searchable without showing it as the title.
+    for item in historyItems where item.recognizedText == nil && !item.title.isEmpty && item.image != nil {
+      item.recognizedText = item.title
+      item.title = ""
+      needsSave = true
+    }
+
+    if needsSave {
+      try? Storage.shared.context.save()
+    }
+  }
+
   @discardableResult
   @MainActor
   func add(_ item: HistoryItem) -> HistoryItemDecorator {
@@ -157,6 +174,7 @@ class History { // swiftlint:disable:this type_body_length
       item.numberOfCopies += existingHistoryItem.numberOfCopies
       item.pin = existingHistoryItem.pin
       item.pinOrder = existingHistoryItem.pinOrder
+      item.recognizedText = existingHistoryItem.recognizedText
       item.title = existingHistoryItem.title
       if !item.fromMaccy {
         item.application = existingHistoryItem.application

@@ -56,7 +56,8 @@ class Search {
   private func fuzzySearch(string: String, within: [Searchable]) -> [SearchResult] {
     let pattern = fuse.createPattern(from: string)
     let searchResults: [SearchResult] = within.compactMap { item in
-      fuzzySearch(for: pattern, in: item.title, of: item)
+      fuzzySearch(for: pattern, in: item.title, of: item) ??
+        fuzzySearch(for: pattern, in: item.recognizedText, of: item, highlightMatches: false)
     }
     let sortedResults = searchResults.sorted(by: { ($0.score ?? 0) < ($1.score ?? 0) })
     return sortedResults
@@ -65,8 +66,13 @@ class Search {
   private func fuzzySearch(
     for pattern: Fuse.Pattern?,
     in searchString: String,
-    of item: Searchable
+    of item: Searchable,
+    highlightMatches: Bool = true
   ) -> SearchResult? {
+    guard !searchString.isEmpty else {
+      return nil
+    }
+
     var searchString = searchString
     if searchString.count > fuzzySearchLimit {
       // shortcut to avoid slow search
@@ -78,13 +84,13 @@ class Search {
       return SearchResult(
         score: fuzzyResult.score,
         object: item,
-        ranges: fuzzyResult.ranges.map {
+        ranges: highlightMatches ? fuzzyResult.ranges.map {
           let startIndex = searchString.startIndex
           let lowerBound = searchString.index(startIndex, offsetBy: $0.lowerBound)
           let upperBound = searchString.index(startIndex, offsetBy: $0.upperBound + 1)
 
           return lowerBound..<upperBound
-        }
+        } : []
       )
     } else {
       return nil
@@ -96,17 +102,21 @@ class Search {
     within: [Searchable],
     options: NSString.CompareOptions
   ) -> [SearchResult] {
-    return within.compactMap { simpleSearch(for: string, in: $0.title, of: $0, options: options) }
+    return within.compactMap { item in
+      simpleSearch(for: string, in: item.title, of: item, options: options) ??
+        simpleSearch(for: string, in: item.recognizedText, of: item, options: options, highlightMatches: false)
+    }
   }
 
   private func simpleSearch(
     for string: String,
     in searchString: String,
     of item: Searchable,
-    options: NSString.CompareOptions
+    options: NSString.CompareOptions,
+    highlightMatches: Bool = true
   ) -> SearchResult? {
     if let range = searchString.range(of: string, options: options, range: nil, locale: nil) {
-      return SearchResult(object: item, ranges: [range])
+      return SearchResult(object: item, ranges: highlightMatches ? [range] : [])
     } else {
       return nil
     }
