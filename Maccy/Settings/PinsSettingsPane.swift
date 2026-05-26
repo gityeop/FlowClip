@@ -44,7 +44,7 @@ struct PinValueView: View {
 
     // Check if this item has editable text content
     let hasPlainText = item.text != nil
-    let hasImage = item.image != nil
+    let hasImage = item.hasImageData
     let hasFileURLs = !item.fileURLs.isEmpty
     let hasRichText = item.rtf != nil || item.html != nil
 
@@ -94,12 +94,17 @@ struct PinValueView: View {
 
     // Remove all non-plain-text content
     let stringType = NSPasteboard.PasteboardType.string.rawValue
+    let removedContents = item.contents.filter { $0.type != stringType }
     item.contents.removeAll { $0.type != stringType }
+    removedContents.forEach { content in
+      content.deleteStoredValueFile()
+      Storage.shared.context.delete(content)
+    }
 
     // Update or add the plain text content
     if let index = item.contents.firstIndex(where: { $0.type == stringType }) {
       if let data = editableValue.data(using: .utf8) {
-        item.contents[index].value = data
+        item.contents[index].setValue(data)
       }
     } else {
       if let data = editableValue.data(using: .utf8) {

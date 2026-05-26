@@ -106,6 +106,9 @@ class History { // swiftlint:disable:this type_body_length
 
   @MainActor
   func load() async throws {
+    try cleanupOrphanedContents()
+    try migrateLargeInlineContents()
+
     let descriptor = FetchDescriptor<HistoryItem>()
     let results = try Storage.shared.context.fetch(descriptor)
     migrateImageTitlesToRecognizedText(in: results)
@@ -144,7 +147,7 @@ class History { // swiftlint:disable:this type_body_length
     var needsSave = false
 
     // Older builds stored image OCR output in title. Keep it searchable without showing it as the title.
-    for item in historyItems where item.recognizedText == nil && !item.title.isEmpty && item.image != nil {
+    for item in historyItems where item.recognizedText == nil && !item.title.isEmpty && item.hasImageData {
       item.recognizedText = item.title
       item.title = ""
       needsSave = true
@@ -167,8 +170,13 @@ class History { // swiftlint:disable:this type_body_length
 
     var removedItemIndex: Int?
     if let existingHistoryItem = findSimilarItem(item) {
-      if isModified(item) == nil {
+      let modifiedHistoryItem = isModified(item)
+      if modifiedHistoryItem == nil {
+        let replacedContents = item.contents
         item.contents = existingHistoryItem.contents
+        replacedContents.forEach { content in
+          deleteContentFromStorage(content)
+        }
       }
       item.firstCopiedAt = existingHistoryItem.firstCopiedAt
       item.numberOfCopies += existingHistoryItem.numberOfCopies
@@ -180,7 +188,8 @@ class History { // swiftlint:disable:this type_body_length
         item.application = existingHistoryItem.application
       }
       logger.info("Removing duplicate item '\(item.title)'")
-      Storage.shared.context.delete(existingHistoryItem)
+      deleteFromStorage(existingHistoryItem, includingContents: modifiedHistoryItem != nil)
+      removeFromSessionLog(existingHistoryItem)
       removedItemIndex = all.firstIndex(where: { $0.item == existingHistoryItem })
       if let removedItemIndex {
         all.remove(at: removedItemIndex)
@@ -191,11 +200,15 @@ class History { // swiftlint:disable:this type_body_length
       }
     }
 
+    if item.hasImageData {
+      item.recognizeTextForSearchIfNeeded()
+    }
+
     // Remove exceeding items. Do this after the item is added to avoid removing something
     // if a duplicate was found as then the size already stayed the same.
     limitHistorySize(to: Defaults[.size] - 1)
 
-    sessionLog[Clipboard.shared.changeCount] = item
+    addToSessionLog(item)
 
     var itemDecorator: HistoryItemDecorator
     if let pin = item.pin {
@@ -236,25 +249,23 @@ class History { // swiftlint:disable:this type_body_length
   @MainActor
   func clear() {
     withLogging("Clearing history") {
-      all.forEach { item in
-        if item.isUnpinned {
-          cleanup(item)
+      all.filter(\.isUnpinned).forEach { item in
+        cleanup(item)
+      }
+
+      let descriptor = FetchDescriptor<HistoryItem>(
+        predicate: #Predicate { $0.pin == nil }
+      )
+      if let unpinnedHistoryItems = try? Storage.shared.context.fetch(descriptor) {
+        unpinnedHistoryItems.forEach { item in
+          deleteFromStorage(item)
         }
       }
       all.removeAll(where: \.isUnpinned)
       sessionLog.removeValues { $0.pin == nil }
       items = all
 
-      try? Storage.shared.context.transaction {
-        try? Storage.shared.context.delete(
-          model: HistoryItem.self,
-          where: #Predicate { $0.pin == nil }
-        )
-        try? Storage.shared.context.delete(
-          model: HistoryItemContent.self,
-          where: #Predicate { $0.item?.pin == nil }
-        )
-      }
+      try? cleanupOrphanedContents()
       Storage.shared.context.processPendingChanges()
       try? Storage.shared.context.save()
     }
@@ -272,11 +283,16 @@ class History { // swiftlint:disable:this type_body_length
       all.forEach { item in
         cleanup(item)
       }
+      if let historyItems = try? Storage.shared.context.fetch(FetchDescriptor<HistoryItem>()) {
+        historyItems.forEach { item in
+          deleteFromStorage(item)
+        }
+      }
       all.removeAll()
       sessionLog.removeAll()
       items = all
 
-      try? Storage.shared.context.delete(model: HistoryItem.self)
+      try? cleanupOrphanedContents()
       Storage.shared.context.processPendingChanges()
       try? Storage.shared.context.save()
     }
@@ -294,7 +310,7 @@ class History { // swiftlint:disable:this type_body_length
 
     cleanup(item)
     withLogging("Removing history item") {
-      Storage.shared.context.delete(item.item)
+      deleteFromStorage(item.item)
       Storage.shared.context.processPendingChanges()
       try? Storage.shared.context.save()
     }
@@ -416,6 +432,66 @@ class History { // swiftlint:disable:this type_body_length
     }
 
     return nil
+  }
+
+  @MainActor
+  private func cleanupOrphanedContents() throws {
+    let descriptor = FetchDescriptor<HistoryItemContent>(
+      predicate: #Predicate { $0.item == nil }
+    )
+    let orphanedContents = try Storage.shared.context.fetch(descriptor)
+    orphanedContents.forEach(deleteContentFromStorage)
+    Storage.shared.context.processPendingChanges()
+    try Storage.shared.context.save()
+  }
+
+  @MainActor
+  private func migrateLargeInlineContents() throws {
+    let descriptor = FetchDescriptor<HistoryItemContent>()
+    let contents = try Storage.shared.context.fetch(descriptor)
+    var needsSave = false
+
+    for content in contents {
+      guard let value = content.value,
+            value.count > HistoryItemContent.externalStorageThreshold else {
+        continue
+      }
+
+      content.setValue(value)
+      needsSave = true
+    }
+
+    guard needsSave else {
+      return
+    }
+
+    Storage.shared.context.processPendingChanges()
+    try Storage.shared.context.save()
+  }
+
+  @MainActor
+  private func deleteFromStorage(_ item: HistoryItem, includingContents: Bool = true) {
+    if includingContents {
+      item.contents.forEach { content in
+        deleteContentFromStorage(content)
+      }
+    }
+
+    Storage.shared.context.delete(item)
+  }
+
+  @MainActor
+  private func deleteContentFromStorage(_ content: HistoryItemContent) {
+    content.deleteStoredValueFile()
+    Storage.shared.context.delete(content)
+  }
+
+  private func addToSessionLog(_ item: HistoryItem) {
+    sessionLog[Clipboard.shared.changeCount] = item
+  }
+
+  private func removeFromSessionLog(_ item: HistoryItem) {
+    sessionLog.removeValues { $0 == item }
   }
 
   private func updateSearchResults() {

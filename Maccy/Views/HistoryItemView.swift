@@ -29,6 +29,11 @@ struct HistoryItemView: View {
         .onAppear {
           item.ensurePreviewImage()
         }
+        .onDisappear {
+          if !item.isSelected {
+            item.cleanupPreviewImage()
+          }
+        }
     }
   }
 }

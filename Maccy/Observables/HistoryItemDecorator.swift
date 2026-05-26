@@ -1,3 +1,4 @@
+import AppKit.NSScreen
 import AppKit.NSWorkspace
 import Defaults
 import Foundation
@@ -11,7 +12,10 @@ class HistoryItemDecorator: Identifiable, Hashable {
   }
 
   static var previewThrottler = Throttler(minimumDelay: Double(Defaults[.previewDelay]) / 1000)
-  static var previewImageSize: NSSize { NSScreen.forPopup?.visibleFrame.size ?? NSSize(width: 2048, height: 1536) }
+  static var previewImageSize: NSSize {
+    let screenSize = NSScreen.forPopup?.visibleFrame.size ?? NSSize(width: 2048, height: 1536)
+    return NSSize(width: screenSize.width * 0.75, height: screenSize.height * 0.75)
+  }
   static var thumbnailImageSize: NSSize { NSSize(width: 340, height: Defaults[.imageMaxHeight]) }
 
   let id = UUID()
@@ -30,6 +34,13 @@ class HistoryItemDecorator: Identifiable, Hashable {
       } else {
         Self.previewThrottler.cancel()
         self.showPreview = false
+        Task { @MainActor [weak self] in
+          guard self?.isSelected == false else {
+            return
+          }
+
+          self?.cleanupPreviewImage()
+        }
       }
     }
   }
@@ -84,7 +95,7 @@ class HistoryItemDecorator: Identifiable, Hashable {
 
   @MainActor
   func ensureThumbnailImage() {
-    guard item.image != nil else {
+    guard item.hasImageData else {
       return
     }
     guard thumbnailImage == nil else {
@@ -93,14 +104,14 @@ class HistoryItemDecorator: Identifiable, Hashable {
     guard thumbnailImageGenerationTask == nil else {
       return
     }
-    thumbnailImageGenerationTask = Task { [weak self] in
+    thumbnailImageGenerationTask = Task { @MainActor [weak self] in
       self?.generateThumbnailImage()
     }
   }
 
   @MainActor
   func ensurePreviewImage() {
-    guard item.image != nil else {
+    guard item.hasImageData else {
       return
     }
     guard previewImage == nil else {
@@ -109,35 +120,79 @@ class HistoryItemDecorator: Identifiable, Hashable {
     guard previewImageGenerationTask == nil else {
       return
     }
-    previewImageGenerationTask = Task { [weak self] in
+    previewImageGenerationTask = Task { @MainActor [weak self] in
       self?.generatePreviewImage()
     }
   }
 
   @MainActor
   func cleanupImages() {
+    cleanupThumbnailImage()
+    cleanupPreviewImage()
+  }
+
+  @MainActor
+  private func cleanupThumbnailImage() {
     thumbnailImageGenerationTask?.cancel()
-    previewImageGenerationTask?.cancel()
     thumbnailImage?.recache()
-    previewImage?.recache()
+    thumbnailImageGenerationTask = nil
     thumbnailImage = nil
+  }
+
+  @MainActor
+  func cleanupPreviewImage() {
+    previewImageGenerationTask?.cancel()
+    previewImage?.recache()
+    previewImageGenerationTask = nil
     previewImage = nil
   }
 
   @MainActor
   private func generateThumbnailImage() {
-    guard let image = item.image else {
+    defer { thumbnailImageGenerationTask = nil }
+
+    guard !Task.isCancelled,
+          let image = downsampledImage(to: HistoryItemDecorator.thumbnailImageSize) else {
       return
     }
+
+    guard !Task.isCancelled else {
+      return
+    }
+
     thumbnailImage = image.resized(to: HistoryItemDecorator.thumbnailImageSize)
   }
 
   @MainActor
   private func generatePreviewImage() {
-    guard let image = item.image else {
+    defer { previewImageGenerationTask = nil }
+
+    guard !Task.isCancelled,
+          let image = downsampledImage(to: HistoryItemDecorator.previewImageSize) else {
       return
     }
+
+    guard !Task.isCancelled else {
+      return
+    }
+
     previewImage = image.resized(to: HistoryItemDecorator.previewImageSize)
+  }
+
+  private func downsampledImage(to size: NSSize) -> NSImage? {
+    if let imageSourceURL = item.imageSourceURL {
+      return autoreleasepool {
+        NSImage.downsampled(contentsOf: imageSourceURL, to: size)
+      }
+    }
+
+    guard let imageData = item.imageData else {
+      return nil
+    }
+
+    return autoreleasepool {
+      NSImage.downsampled(data: imageData, to: size)
+    }
   }
 
   @MainActor

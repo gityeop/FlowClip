@@ -67,6 +67,13 @@ class ClipboardTests: XCTestCase {
     return item
   }
 
+  private func makeLargeImageContent() -> HistoryItemContent {
+    HistoryItemContent(
+      type: tiffType.rawValue,
+      value: Data(repeating: 1, count: HistoryItemContent.externalStorageThreshold + 1)
+    )
+  }
+
   func testChangesListenerAndAddHooks() {
     let hookExpectation = expectation(description: "Hook is called")
     clipboard.onNewCopy({ (_: HistoryItem) in
@@ -414,6 +421,31 @@ class ClipboardTests: XCTestCase {
     QueueClipboard.shared.moveToEnd(itemWithID: firstID)
 
     XCTAssertEqual(QueueClipboard.shared.items.compactMap { $0.item.text }, ["two", "three", "one"])
+  }
+
+  func testQueueClipboardClearDeletesExternalContentFiles() {
+    let content = makeLargeImageContent()
+    let item = HistoryItem(contents: [content])
+    QueueClipboard.shared.add(item)
+
+    XCTAssertTrue(content.hasStoredValueFile)
+
+    QueueClipboard.shared.clear()
+
+    XCTAssertFalse(content.hasStoredValueFile)
+  }
+
+  func testQueueClipboardRemoveDeletesExternalContentFiles() {
+    let content = makeLargeImageContent()
+    let item = HistoryItem(contents: [content])
+    QueueClipboard.shared.add(item)
+
+    let queueItemID = QueueClipboard.shared.items[0].id
+    XCTAssertTrue(content.hasStoredValueFile)
+
+    QueueClipboard.shared.remove(id: queueItemID)
+
+    XCTAssertFalse(content.hasStoredValueFile)
   }
 
   @MainActor

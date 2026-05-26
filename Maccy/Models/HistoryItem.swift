@@ -1,5 +1,6 @@
 import AppKit
 import Defaults
+import ImageIO
 import Sauce
 import SwiftData
 import UniformTypeIdentifiers
@@ -64,6 +65,7 @@ class HistoryItem {
     NSPasteboard.PasteboardType.chromiumSourceToken.rawValue,
     NSPasteboard.PasteboardType.notesRichText.rawValue
   ]
+  private static let textRecognitionQueue = DispatchQueue(label: "org.p0deje.Maccy.text-recognition", qos: .utility)
 
   var application: String?
   var firstCopiedAt: Date = Date.now
@@ -89,13 +91,12 @@ class HistoryItem {
         !Self.transientTypes.contains(content.type)
       }
       .allSatisfy { content in
-        contents.contains(where: { $0.type == content.type && $0.value == content.value })
+        contents.contains(where: { $0.type == content.type && $0.resolvedValue == content.resolvedValue })
       }
   }
 
   func generateTitle() -> String {
-    guard image == nil else {
-      recognizeTextForSearchIfNeeded()
+    guard !hasImageData else {
       return ""
     }
 
@@ -166,6 +167,21 @@ class HistoryItem {
     return data
   }
 
+  var imageSourceURL: URL? {
+    if let url = content(for: [.tiff, .png, .jpeg, .heic])?.resolvedValueFileURL {
+      return url
+    }
+    if universalClipboardImage, let url = fileURLs.first {
+      return url
+    }
+
+    return imageFileURL
+  }
+
+  var hasImageData: Bool {
+    hasContentData([.tiff, .png, .jpeg, .heic]) || imageSourceURL != nil
+  }
+
   var image: NSImage? {
     guard let data = imageData else {
       return nil
@@ -218,36 +234,67 @@ class HistoryItem {
   }
   private var universalClipboardImage: Bool { universalClipboard && fileURLs.first?.pathExtension == "jpeg" }
   private var universalClipboardText: Bool {
-    universalClipboard && contentData([.html, .tiff, .png, .jpeg, .rtf, .string, .heic]) != nil
+    universalClipboard && hasContentData([.html, .tiff, .png, .jpeg, .rtf, .string, .heic])
   }
 
   private func contentData(_ types: [NSPasteboard.PasteboardType]) -> Data? {
-    let content = contents.first(where: { content in
-      return types.contains(NSPasteboard.PasteboardType(content.type))
-    })
-
-    return content?.value
+    return content(for: types)?.resolvedValue
   }
 
   private func allContentData(_ types: [NSPasteboard.PasteboardType]) -> [Data] {
     return contents
       .filter { types.contains(NSPasteboard.PasteboardType($0.type)) }
-      .compactMap { $0.value }
+      .compactMap { $0.resolvedValue }
   }
 
-  private func recognizeTextForSearchIfNeeded() {
+  private func hasContentData(_ types: [NSPasteboard.PasteboardType]) -> Bool {
+    return content(for: types) != nil
+  }
+
+  private func content(for types: [NSPasteboard.PasteboardType]) -> HistoryItemContent? {
+    return contents.first(where: { content in
+      return types.contains(NSPasteboard.PasteboardType(content.type))
+    })
+  }
+
+  func recognizeTextForSearchIfNeeded() {
     guard recognizedText == nil,
-          let cgImage = image?.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+          let imageData else {
       return
     }
 
-    DispatchQueue.global(qos: .utility).async { [weak self] in
-      let recognizedText = Self.recognizeText(in: cgImage)
+    Self.textRecognitionQueue.async { [weak self, imageData] in
+      let recognizedText = autoreleasepool {
+        guard let cgImage = Self.cgImage(from: imageData) else {
+          return ""
+        }
+
+        return Self.recognizeText(in: cgImage)
+      }
       DispatchQueue.main.async {
+        guard self?.recognizedText == nil else {
+          return
+        }
+
         self?.recognizedText = recognizedText
         try? Storage.shared.context.save()
       }
     }
+  }
+
+  private static func cgImage(from data: Data) -> CGImage? {
+    let sourceOptions = [
+      kCGImageSourceShouldCache: false
+    ] as CFDictionary
+    let imageOptions = [
+      kCGImageSourceShouldCacheImmediately: true
+    ] as CFDictionary
+
+    guard let source = CGImageSourceCreateWithData(data as CFData, sourceOptions) else {
+      return nil
+    }
+
+    return CGImageSourceCreateImageAtIndex(source, 0, imageOptions)
   }
 
   private static func recognizeText(in cgImage: CGImage) -> String {

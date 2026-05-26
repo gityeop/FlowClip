@@ -43,6 +43,10 @@ class QueueClipboard {
       return
     }
 
+    item.contents.forEach { content in
+      content.deleteStoredValueFile()
+    }
+
     splitItems.forEach { splitText in
       let queueItem = HistoryItem(contents: [
         HistoryItemContent(
@@ -85,6 +89,8 @@ class QueueClipboard {
   }
 
   func remove(id: UUID) {
+    let removedItems = items.filter { $0.id == id }
+    removedItems.forEach(cleanup)
     items.removeAll(where: { $0.id == id })
   }
 
@@ -112,7 +118,14 @@ class QueueClipboard {
   }
 
   func clear() {
+    items.forEach(cleanup)
     items.removeAll()
+  }
+
+  private func cleanup(_ queueItem: QueueItem) {
+    queueItem.item.contents.forEach { content in
+      content.deleteStoredValueFile()
+    }
   }
 }
 
@@ -144,7 +157,7 @@ enum QueueTextSplitter {
       return text
     }
 
-    if !item.fileURLs.isEmpty || item.image != nil {
+    if !item.fileURLs.isEmpty || item.hasImageData {
       return nil
     }
 
@@ -917,17 +930,23 @@ private struct QueueReorderToEndDropDelegate: DropDelegate {
 struct QueueItemView: View {
   let queueItem: QueueClipboard.QueueItem
   @State private var isHovering = false
+  @State private var thumbnailImage: NSImage?
+
+  private static let thumbnailSize = NSSize(width: 80, height: 45)
 
   var body: some View {
     ZStack(alignment: .trailing) {
       HStack(alignment: .top, spacing: 10) {
         VStack(alignment: .leading, spacing: 2) {
-          if let image = queueItem.item.image {
+          if let image = thumbnailImage {
             Image(nsImage: image)
               .resizable()
               .aspectRatio(contentMode: .fit)
-              .frame(maxWidth: 80, maxHeight: 45)
+              .frame(width: Self.thumbnailSize.width, height: Self.thumbnailSize.height)
               .cornerRadius(4)
+          } else if queueItem.item.hasImageData {
+            ProgressView()
+              .frame(width: Self.thumbnailSize.width, height: Self.thumbnailSize.height)
           }
           Text(queueItem.item.title)
             .font(.system(size: 12, weight: .medium))
@@ -976,5 +995,43 @@ struct QueueItemView: View {
         isHovering = hovering
       }
     }
+    .task(id: queueItem.id) {
+      await generateThumbnailIfNeeded()
+    }
+    .onDisappear {
+      thumbnailImage?.recache()
+      thumbnailImage = nil
+    }
+  }
+
+  @MainActor
+  private func generateThumbnailIfNeeded() async {
+    guard thumbnailImage == nil, queueItem.item.hasImageData else {
+      return
+    }
+
+    let item = queueItem.item
+    let thumbnailImage: NSImage?
+    if let imageSourceURL = item.imageSourceURL {
+      thumbnailImage = await Task.detached(priority: .utility) {
+        autoreleasepool {
+          NSImage.downsampled(contentsOf: imageSourceURL, to: Self.thumbnailSize)
+        }
+      }.value
+    } else if let imageData = item.imageData {
+      thumbnailImage = await Task.detached(priority: .utility) {
+        autoreleasepool {
+          NSImage.downsampled(data: imageData, to: Self.thumbnailSize)
+        }
+      }.value
+    } else {
+      thumbnailImage = nil
+    }
+
+    guard !Task.isCancelled else {
+      return
+    }
+
+    self.thumbnailImage = thumbnailImage
   }
 }
