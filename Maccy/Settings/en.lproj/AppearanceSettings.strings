@@ -1,5 +1,7 @@
 "Title" = "Appearance";
 "PopupAt" = "Popup at:";
+"QueueClipboardPopupAt" = "Queue Clipboard popup at:";
+"QueueClipboardPopupAtTooltip" = "Change where Queue Clipboard appears.\nDefault: Menu icon.";
 "PopupAtCursor" = "Cursor";
 "PopupAtMenuBarIcon" = "Menu icon";
 "PopupAtWindowCenter" = "Window center";

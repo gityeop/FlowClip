@@ -280,6 +280,7 @@ extension Defaults.Keys {
   static let queueCyclePaste = Key<Bool>("queueCyclePaste", default: false)
   static let queuePasteLifo = Key<Bool>("queuePasteLifo", default: true)
   static let queueAutoSplitText = Key<Bool>("queueAutoSplitText", default: false)
+  static let queuePopupPosition = Key<PopupPosition>("queuePopupPosition", default: .statusItem)
   static let queueSeparator = Key<QueueSeparator>("queueSeparator", default: .custom)
   static let previewDelay = Key<Int>("previewDelay", default: 1500)
   static let removeFormattingByDefault = Key<Bool>("removeFormattingByDefault", default: false)

@@ -5,6 +5,7 @@ import Settings
 
 struct AppearanceSettingsPane: View {
   @Default(.popupPosition) private var popupAt
+  @Default(.queuePopupPosition) private var queuePopupAt
   @Default(.popupScreen) private var popupScreen
   @Default(.pinTo) private var pinTo
   @Default(.imageMaxHeight) private var imageHeight
@@ -16,6 +17,7 @@ struct AppearanceSettingsPane: View {
   @Default(.searchVisibility) private var searchVisibility
   @Default(.showFooter) private var showFooter
   @Default(.windowPosition) private var windowPosition
+  @Default(.queueWindowPosition) private var queueWindowPosition
   @Default(.showApplicationIcons) private var showApplicationIcons
 
   @State private var screens = NSScreen.screens
@@ -51,32 +53,23 @@ struct AppearanceSettingsPane: View {
   var body: some View {
     Settings.Container(contentWidth: 650) {
       Settings.Section(label: { Text("PopupAt", tableName: "AppearanceSettings") }) {
-        HStack {
-          Picker("", selection: $popupAt) {
-            ForEach(PopupPosition.allCases) { position in
-              if position == .center || position == .lastPosition, screens.count > 1 {
-                screenPicker(for: position)
-              } else {
-                Text(position.description)
-              }
-            }
-          }
-          .labelsHidden()
-          .frame(width: 141, alignment: .leading)
-          .help(Text("PopupAtTooltip", tableName: "AppearanceSettings"))
+        popupPositionPicker(
+          selection: $popupAt,
+          savedPosition: windowPosition,
+          defaultPosition: _windowPosition.defaultValue,
+          help: Text("PopupAtTooltip", tableName: "AppearanceSettings"),
+          resetPosition: { _windowPosition.reset() }
+        )
+      }
 
-          if popupAt == .lastPosition {
-            Button {
-              _windowPosition.reset()
-            } label: {
-              Image(systemName: "arrow.uturn.backward.circle.fill")
-                .imageScale(.large)
-            }
-            .buttonStyle(.borderless)
-            .help(Text("PopupAtLastLocationReset", tableName: "AppearanceSettings"))
-            .disabled(windowPosition == _windowPosition.defaultValue)
-          }
-        }
+      Settings.Section(label: { Text("QueueClipboardPopupAt", tableName: "AppearanceSettings") }) {
+        popupPositionPicker(
+          selection: $queuePopupAt,
+          savedPosition: queueWindowPosition,
+          defaultPosition: _queueWindowPosition.defaultValue,
+          help: Text("QueueClipboardPopupAtTooltip", tableName: "AppearanceSettings"),
+          resetPosition: { _queueWindowPosition.reset() }
+        )
       }
 
       Settings.Section(label: { Text("PinTo", tableName: "AppearanceSettings") }) {
@@ -186,12 +179,48 @@ struct AppearanceSettingsPane: View {
   }
 
   @ViewBuilder
-  private func screenPicker(for position: PopupPosition) -> some View {
+  private func popupPositionPicker(
+    selection: Binding<PopupPosition>,
+    savedPosition: NSPoint,
+    defaultPosition: NSPoint,
+    help: Text,
+    resetPosition: @escaping () -> Void
+  ) -> some View {
+    HStack {
+      Picker("", selection: selection) {
+        ForEach(PopupPosition.allCases) { position in
+          if position == .center || position == .lastPosition, screens.count > 1 {
+            screenPicker(for: position, selection: selection)
+          } else {
+            Text(position.description)
+          }
+        }
+      }
+      .labelsHidden()
+      .frame(width: 141, alignment: .leading)
+      .help(help)
+
+      if selection.wrappedValue == .lastPosition {
+        Button {
+          resetPosition()
+        } label: {
+          Image(systemName: "arrow.uturn.backward.circle.fill")
+            .imageScale(.large)
+        }
+        .buttonStyle(.borderless)
+        .help(Text("PopupAtLastLocationReset", tableName: "AppearanceSettings"))
+        .disabled(savedPosition == defaultPosition)
+      }
+    }
+  }
+
+  @ViewBuilder
+  private func screenPicker(for position: PopupPosition, selection: Binding<PopupPosition>) -> some View {
     let screenBinding: Binding<Int> = Binding {
       return popupScreen
     } set: {
       popupScreen = $0
-      popupAt = position
+      selection.wrappedValue = position
     }
 
     Picker(selection: screenBinding) {
@@ -203,7 +232,7 @@ struct AppearanceSettingsPane: View {
           .tag(index + 1)
       }
     } label: {
-      if popupAt == position {
+      if selection.wrappedValue == position {
         Text("\(position.description) (\(labelForScreen(index: popupScreen)))")
       } else {
         Text(position.description)

@@ -27,7 +27,11 @@ enum PopupPosition: String, CaseIterable, Identifiable, CustomStringConvertible,
   }
 
   // swiftlint:disable:next cyclomatic_complexity
-  func origin(size: NSSize, statusBarButton: NSStatusBarButton?) -> NSPoint {
+  func origin(
+    size: NSSize,
+    statusBarButton: NSStatusBarButton?,
+    positionPersistenceKey: Defaults.Key<NSPoint> = .windowPosition
+  ) -> NSPoint {
     switch self {
     case .center:
       if let frame = NSScreen.forPopup?.visibleFrame {
@@ -38,22 +42,35 @@ enum PopupPosition: String, CaseIterable, Identifiable, CustomStringConvertible,
         return NSRect.centered(ofSize: size, in: frame).origin
       }
     case .statusItem:
-      if let statusBarButton, let screen = NSScreen.main {
-        let rectInWindow = statusBarButton.convert(statusBarButton.bounds, to: nil)
-        if let screenRect = statusBarButton.window?.convertToScreen(rectInWindow) {
-          let padding: CGFloat = 8
-          var topLeftPoint = NSPoint(x: screenRect.minX, y: screenRect.minY - size.height - padding)
-          // Ensure that window doesn't spill over to the right screen.
-          if (topLeftPoint.x + size.width) > screen.frame.maxX {
-            topLeftPoint.x = screen.frame.maxX - size.width
-          }
-
-          return topLeftPoint
-        }
+      guard let statusBarButton else {
+        preconditionFailure("Missing status bar button for menu icon popup position.")
       }
+      guard let statusBarWindow = statusBarButton.window else {
+        preconditionFailure("Missing status bar window for menu icon popup position.")
+      }
+      guard let screen = statusBarWindow.screen else {
+        preconditionFailure("Missing status bar screen for menu icon popup position.")
+      }
+
+      let rectInWindow = statusBarButton.convert(statusBarButton.bounds, to: nil)
+      let screenRect = statusBarWindow.convertToScreen(rectInWindow)
+      let screenFrame = screen.visibleFrame
+      var topLeftPoint = NSPoint(
+        x: screenRect.minX,
+        y: screenRect.minY - size.height
+      )
+
+      if topLeftPoint.x < screenFrame.minX {
+        topLeftPoint.x = screenFrame.minX
+      }
+      if topLeftPoint.x + size.width > screenFrame.maxX {
+        topLeftPoint.x = screenFrame.maxX - size.width
+      }
+
+      return topLeftPoint
     case .lastPosition:
       if let frame = NSScreen.forPopup?.visibleFrame {
-        let relativePos = Defaults[.windowPosition]
+        let relativePos = Defaults[positionPersistenceKey]
         let anchorX = frame.minX + frame.width * relativePos.x
         let anchorY = frame.minY + frame.height * relativePos.y
         // Anchor is top middle of frame

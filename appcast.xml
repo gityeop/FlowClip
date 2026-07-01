@@ -6,6 +6,30 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.21</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li><strong>Improvements:</strong>
+    <ul>
+      <li>Added a Queue Clipboard popup position setting in Appearance preferences.</li>
+      <li>Queue Clipboard now opens from the menu bar icon by default.</li>
+    </ul>
+  </li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Wed, 01 Jul 2026 09:25:32 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.21</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.21/FlowClip.zip"
+        sparkle:version="22"
+        sparkle:shortVersionString="1.0.21"
+        length="7104434"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.20</title>
       <description>
         <![CDATA[

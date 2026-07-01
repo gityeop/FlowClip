@@ -400,6 +400,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     queuePanel = FloatingPanel(
       contentRect: NSRect(origin: .zero, size: Defaults[.queueWindowSize]),
       identifier: (Bundle.main.bundleIdentifier ?? "org.p0deje.Maccy") + ".queue",
+      statusBarButton: statusItem.button,
       sizePersistenceKey: .queueWindowSize,
       positionPersistenceKey: .queueWindowPosition,
       onClose: {
@@ -474,7 +475,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     } else {
       QueueClipboard.shared.isModeActive = true
       QueueClipboardManager.shared.startMonitoring()
-      queuePanel.open(height: Defaults[.queueWindowSize].height, at: PopupPosition.cursor, makeKey: false)
+      queuePanel.open(height: Defaults[.queueWindowSize].height, at: Defaults[.queuePopupPosition], makeKey: false)
     }
   }
 
