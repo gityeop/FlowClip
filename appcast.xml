@@ -6,6 +6,36 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.22</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li><strong>Improvements:</strong>
+    <ul>
+      <li>Added a dedicated Accessibility permission window that updates in real time and confirms when permission is granted.</li>
+      <li>Added live Accessibility permission status and a direct System Settings button to General settings.</li>
+    </ul>
+  </li>
+  <li><strong>Fixes:</strong>
+    <ul>
+      <li>Prevented Queue Clipboard monitoring and paste operations from starting without Accessibility permission.</li>
+      <li>Fixed “Popup at: Menu icon” leaving a gap below the menu bar.</li>
+    </ul>
+  </li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Wed, 15 Jul 2026 22:45:21 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.22</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.22/FlowClip.zip"
+        sparkle:version="23"
+        sparkle:shortVersionString="1.0.22"
+        length="7123449"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.21</title>
       <description>
         <![CDATA[
