@@ -10,8 +10,9 @@ struct ContentView: View {
 
   var body: some View {
     ZStack {
-      if #available(macOS 26.0, *) {
-        GlassEffectView()
+      if usesLightMockupBackground {
+        Color(nsColor: .windowBackgroundColor)
+          .opacity(0.92)
       } else {
         VisualEffectView()
       }
@@ -32,8 +33,6 @@ struct ContentView: View {
         }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-      .animation(.default.speed(3), value: appState.history.items)
-      .animation(.easeInOut(duration: 0.2), value: appState.searchVisible)
       .padding(.vertical, Popup.verticalPadding)
       .padding(.horizontal, Popup.horizontalPadding)
       .onAppear {
@@ -74,6 +73,14 @@ struct ContentView: View {
         popover.behavior = .semitransient
       }
     }
+  }
+
+  private var usesLightMockupBackground: Bool {
+    #if DEBUG
+    CommandLine.arguments.contains("mockup-light-ui")
+    #else
+    false
+    #endif
   }
 }
 

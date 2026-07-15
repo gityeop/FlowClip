@@ -57,7 +57,7 @@ enum PopupPosition: String, CaseIterable, Identifiable, CustomStringConvertible,
       let screenFrame = screen.visibleFrame
       var topLeftPoint = NSPoint(
         x: screenRect.minX,
-        y: screenRect.minY - size.height
+        y: screenFrame.maxY - size.height
       )
 
       if topLeftPoint.x < screenFrame.minX {

@@ -30,5 +30,9 @@
 "system_preferences_pane" = "보안 및 개인";
 "AccessibilityPermissionRequired" = "손쉬운 사용 권한 필요";
 "AccessibilityPermissionRequiredMessage" = "FlowClip이 항목을 붙여넣으려면 손쉬운 사용 권한이 필요합니다. 시스템 설정에서 허용해 주세요.";
+"AccessibilityPermission" = "손쉬운 사용 권한:";
+"AccessibilityPermissionGranted" = "허용됨";
+"AccessibilityPermissionMissing" = "권한 필요";
+"AccessibilityPermissionGrantedMessage" = "이제 FlowClip이 항목을 붙여넣을 수 있습니다.";
 "OpenSystemSettings" = "시스템 설정 열기";
 "Cancel" = "취소";

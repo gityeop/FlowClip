@@ -378,7 +378,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationDidFinishLaunching(_ aNotification: Notification) {
-    Accessibility.check()
     migrateUserDefaults()
     disableUnusedGlobalHotkeys()
 
@@ -451,22 +450,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       _ = QueueSeparator.cycleCurrentPreset()
       NSSound.playMorseFeedback()
     }
+
+    #if DEBUG
+    guard !CommandLine.arguments.contains("enable-testing") else {
+      return
+    }
+    #endif
+
+    DispatchQueue.main.async {
+      Accessibility.shared.checkAndPresentIfNeeded()
+    }
   }
 
+  @MainActor
   private func toggleQueue() {
-    guard Accessibility.allowed else {
-      let alert = NSAlert()
-      alert.messageText = NSLocalizedString("AccessibilityPermissionRequired", comment: "")
-      alert.informativeText = NSLocalizedString("AccessibilityPermissionRequiredMessage", comment: "")
-      alert.addButton(withTitle: NSLocalizedString("OpenSystemSettings", comment: ""))
-      alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
-      
-      if alert.runModal() == .alertFirstButtonReturn {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-          NSWorkspace.shared.open(url)
-        }
-        Accessibility.check() // Trigger system prompt if needed
-      }
+    guard Accessibility.shared.checkAndPresentIfNeeded() else {
       return
     }
 

@@ -30,5 +30,9 @@
 "system_preferences_pane" = "Security & Privacy preferences";
 "AccessibilityPermissionRequired" = "Accessibility Permission Required";
 "AccessibilityPermissionRequiredMessage" = "FlowClip requires accessibility permission to paste items. Please allow it in System Settings.";
+"AccessibilityPermission" = "Accessibility permission:";
+"AccessibilityPermissionGranted" = "Allowed";
+"AccessibilityPermissionMissing" = "Permission required";
+"AccessibilityPermissionGrantedMessage" = "FlowClip can now paste items.";
 "OpenSystemSettings" = "Open System Settings";
 "Cancel" = "Cancel";
