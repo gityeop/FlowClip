@@ -82,11 +82,19 @@ struct HistoryListView: View {
           .background {
             GeometryReader { geo in
               Color.clear
-                .task(id: geo.size.height) {
-                  await resizePopupContentHeight(measuredHeight: geo.size.height)
-                }
-                .task(id: unpinnedItems.map(\.id)) {
-                  await resizePopupContentHeight(measuredHeight: geo.size.height)
+                .task(id: appState.popup.needsResize) {
+                  guard appState.popup.needsResize else { return }
+
+                  do {
+                    try await Task.sleep(for: .milliseconds(10))
+                  } catch is CancellationError {
+                    return
+                  } catch {
+                    fatalError("Failed while waiting to resize the popup: \(error)")
+                  }
+
+                  guard !Task.isCancelled, appState.popup.needsResize else { return }
+                  appState.popup.resize(height: max(geo.size.height, estimatedUnpinnedItemsHeight))
                 }
             }
           }
@@ -260,13 +268,6 @@ struct HistoryListView: View {
   private func clearPinnedDragState() {
     draggingPinnedItemID = nil
     activePinnedDropIndex = nil
-  }
-
-  private func resizePopupContentHeight(measuredHeight: CGFloat) async {
-    try? await Task.sleep(for: .milliseconds(10))
-    guard !Task.isCancelled else { return }
-
-    appState.popup.resize(height: max(measuredHeight, estimatedUnpinnedItemsHeight))
   }
 
   private var estimatedUnpinnedItemsHeight: CGFloat {

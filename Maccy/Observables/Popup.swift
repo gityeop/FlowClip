@@ -21,6 +21,7 @@ class Popup {
   static let horizontalSeparatorPadding = 6.0
   static let verticalPadding: CGFloat = 5
   static let horizontalPadding: CGFloat = 5
+  static let searchVisibleItemCount = 8
 
   // Radius used for items inset by the padding. Ensures they visually have the same curvature
   // as the menu.
@@ -39,23 +40,15 @@ class Popup {
   var needsResize = false
   var height: CGFloat = 0
   var contentHeight: CGFloat = 0
-  var headerHeight: CGFloat = 0 {
-    didSet {
-      updateHeight()
-    }
-  }
-  var pinnedItemsHeight: CGFloat = 0 {
-    didSet {
-      updateHeight()
-    }
-  }
-  var footerHeight: CGFloat = 0 {
-    didSet {
-      updateHeight()
-    }
-  }
+  var headerHeight: CGFloat = 0
+  var pinnedItemsHeight: CGFloat = 0
+  var footerHeight: CGFloat = 0
 
   private var eventsMonitor: Any?
+  @ObservationIgnored
+  private var searchSessionHeight: CGFloat?
+  @ObservationIgnored
+  private var appliedHeight: CGFloat?
 
   private var state: PopupState = .toggle
 
@@ -85,9 +78,12 @@ class Popup {
 
   func open(height: CGFloat, at popupPosition: PopupPosition = Defaults[.popupPosition]) {
     AppState.shared.appDelegate?.panel.open(height: height, at: popupPosition)
+    appliedHeight = height
   }
 
   func reset() {
+    searchSessionHeight = nil
+    appliedHeight = nil
     state = .toggle
     KeyboardShortcuts.enable(.popup)
   }
@@ -106,12 +102,7 @@ class Popup {
   }
 
   private func updateHeight() {
-    let calculatedHeight = contentHeight
-      + headerHeight
-      + pinnedItemsHeight
-      + footerHeight
-      + (Popup.verticalPadding * 2)
-    height = restoredHeight(for: calculatedHeight)
+    height = restoredHeight()
 
     guard let panel = AppState.shared.appDelegate?.panel else {
       needsResize = false
@@ -128,16 +119,33 @@ class Popup {
       return
     }
 
+    guard appliedHeight != height else {
+      needsResize = false
+      return
+    }
+
     panel.verticallyResize(to: height)
+    appliedHeight = height
     needsResize = false
   }
 
-  private func restoredHeight(for calculatedHeight: CGFloat) -> CGFloat {
-    guard AppState.shared.history.searchQuery.isEmpty else {
-      return calculatedHeight
+  private func restoredHeight() -> CGFloat {
+    guard !AppState.shared.history.searchQuery.isEmpty else {
+      searchSessionHeight = nil
+      return Defaults[.windowSize].height
     }
 
-    return Defaults[.windowSize].height
+    if let searchSessionHeight {
+      return searchSessionHeight
+    }
+
+    let searchHeight = headerHeight
+      + (Popup.itemHeight * CGFloat(Popup.searchVisibleItemCount))
+      + footerHeight
+      + (Popup.verticalPadding * 2)
+    let searchSessionHeight = min(searchHeight, Defaults[.windowSize].height)
+    self.searchSessionHeight = searchSessionHeight
+    return searchSessionHeight
   }
 
   private func handleFirstKeyDown() {

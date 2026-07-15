@@ -11,6 +11,8 @@ class CustomHostingView<Content: View>: NSHostingView<Content> {
 
 class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   private var didObserveUserLiveResize = false
+  private var currentPopupPosition: PopupPosition?
+  private var isProgrammaticallyResizing = false
   var isPresented: Bool = false
   var statusBarButton: NSStatusBarButton?
   var closeOnResignKey: Bool = true
@@ -26,7 +28,7 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
       if isMovableExternally {
         return true
       }
-      return Defaults[.popupPosition] != .statusItem
+      return (currentPopupPosition ?? Defaults[.popupPosition]) != .statusItem
     }
     set {}
   }
@@ -91,6 +93,7 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   }
 
   func open(height: CGFloat, at popupPosition: PopupPosition = Defaults[.popupPosition], makeKey: Bool = true) {
+    currentPopupPosition = popupPosition
     setContentSize(NSSize(width: frame.width, height: min(height, Defaults[sizePersistenceKey].height)))
     setFrameOrigin(popupPosition.origin(
       size: frame.size,
@@ -111,15 +114,15 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   }
 
   func verticallyResize(to newHeight: CGFloat) {
-    var newSize = Defaults[sizePersistenceKey]
-    newSize.height = min(newHeight, newSize.height)
+    let currentContentSize = contentRect(forFrameRect: frame).size
+    var newContentSize = currentContentSize
+    newContentSize.height = min(newHeight, Defaults[sizePersistenceKey].height)
+    guard newContentSize != currentContentSize else { return }
 
-    var newOrigin = frame.origin
-    newOrigin.y += (frame.height - newSize.height)
-
-    NSAnimationContext.runAnimationGroup { (context) in
-      context.duration = 0.2
-      animator().setFrame(NSRect(origin: newOrigin, size: newSize), display: true)
+    isProgrammaticallyResizing = true
+    setContentSize(newContentSize)
+    DispatchQueue.main.async {
+      self.isProgrammaticallyResizing = false
     }
   }
 
@@ -146,6 +149,7 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   }
 
   func windowDidMove(_ notification: Notification) {
+    guard !isProgrammaticallyResizing else { return }
     saveWindowPosition()
   }
 
@@ -169,6 +173,7 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   override func close() {
     super.close()
     isPresented = false
+    currentPopupPosition = nil
     statusBarButton?.isHighlighted = false
     onClose()
   }

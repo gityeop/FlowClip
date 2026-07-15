@@ -489,6 +489,7 @@ class PopupSearchHeightTests: XCTestCase {
   let popup = AppState.shared.popup
   let history = History.shared
   let savedWindowSize = Defaults[.windowSize]
+  let savedPopupPosition = Defaults[.popupPosition]
 
   override func setUpWithError() throws {
     try super.setUpWithError()
@@ -501,6 +502,7 @@ class PopupSearchHeightTests: XCTestCase {
       popup.height = 0
       history.searchQuery = ""
       Defaults[.windowSize] = NSSize(width: 450, height: 640)
+      Defaults[.popupPosition] = .cursor
     }
   }
 
@@ -514,6 +516,7 @@ class PopupSearchHeightTests: XCTestCase {
       popup.height = 0
       history.searchQuery = ""
       Defaults[.windowSize] = savedWindowSize
+      Defaults[.popupPosition] = savedPopupPosition
     }
     try super.tearDownWithError()
   }
@@ -530,7 +533,7 @@ class PopupSearchHeightTests: XCTestCase {
     runOnMainActor(description: "Restore saved height") { [self] in
       history.searchQuery = "foo"
       popup.resize(height: 120)
-      XCTAssertEqual(popup.height, 130)
+      XCTAssertEqual(popup.height, expectedSearchHeight)
 
       history.searchQuery = ""
 
@@ -551,13 +554,70 @@ class PopupSearchHeightTests: XCTestCase {
     }
   }
 
-  func testSearchingKeepsContentDrivenHeight() {
-    runOnMainActor(description: "Search remains content driven") { [self] in
+  func testSearchingUsesFixedSessionHeight() {
+    runOnMainActor(description: "Search uses a fixed session height") { [self] in
+      history.searchQuery = "foo"
+      popup.resize(height: 40)
+      let searchHeight = popup.height
+
+      popup.resize(height: 400)
+
+      XCTAssertEqual(searchHeight, expectedSearchHeight)
+      XCTAssertEqual(popup.height, searchHeight)
+    }
+  }
+
+  func testSearchingFromStatusItemUsesFixedSessionHeight() {
+    runOnMainActor(description: "Status item search uses a fixed session height") { [self] in
+      Defaults[.popupPosition] = .statusItem
       history.searchQuery = "foo"
       popup.resize(height: 40)
 
-      XCTAssertEqual(popup.height, 50)
+      XCTAssertEqual(popup.height, expectedSearchHeight)
     }
+  }
+
+  func testSectionMeasurementsWaitForContentHeightCommit() {
+    runOnMainActor(description: "Section measurements wait for content height") { [self] in
+      let savedAppDelegate = AppState.shared.appDelegate
+      let appDelegate = AppDelegate()
+      let panel = CountingFloatingPanel(
+        contentRect: NSRect(origin: .zero, size: Defaults[.windowSize]),
+        identifier: "popup-measurement-commit-test",
+        onClose: {}
+      ) {
+        ContentView()
+      }
+      panel.isPresented = true
+      appDelegate.panel = panel
+      AppState.shared.appDelegate = appDelegate
+
+      history.searchQuery = "foo"
+      popup.resize(height: 40)
+      panel.requestedHeights.removeAll()
+
+      popup.headerHeight = 10
+      popup.pinnedItemsHeight = 20
+      popup.footerHeight = 30
+
+      XCTAssertTrue(panel.requestedHeights.isEmpty)
+
+      popup.resize(height: 80)
+
+      XCTAssertTrue(panel.requestedHeights.isEmpty)
+      panel.isPresented = false
+      AppState.shared.appDelegate = savedAppDelegate
+    }
+  }
+
+  private var expectedSearchHeight: CGFloat {
+    min(
+      popup.headerHeight
+        + (Popup.itemHeight * CGFloat(Popup.searchVisibleItemCount))
+        + popup.footerHeight
+        + (Popup.verticalPadding * 2),
+      Defaults[.windowSize].height
+    )
   }
 
   private func runOnMainActor(description: String, _ work: @escaping @MainActor () -> Void) {
@@ -572,11 +632,26 @@ class PopupSearchHeightTests: XCTestCase {
   }
 }
 
+private final class CountingFloatingPanel<Content: View>: FloatingPanel<Content> {
+  var requestedHeights: [CGFloat] = []
+
+  override func verticallyResize(to newHeight: CGFloat) {
+    requestedHeights.append(newHeight)
+  }
+}
+
 class FloatingPanelPersistenceTests: XCTestCase {
   let savedWindowSize = Defaults[.windowSize]
+  let savedPopupPosition = Defaults[.popupPosition]
+
+  override func setUpWithError() throws {
+    try super.setUpWithError()
+    Defaults[.popupPosition] = .cursor
+  }
 
   override func tearDownWithError() throws {
     Defaults[.windowSize] = savedWindowSize
+    Defaults[.popupPosition] = savedPopupPosition
     try super.tearDownWithError()
   }
 
@@ -597,6 +672,37 @@ class FloatingPanelPersistenceTests: XCTestCase {
       panel.windowDidEndLiveResize(Notification(name: NSWindow.didEndLiveResizeNotification, object: panel))
 
       XCTAssertEqual(Defaults[.windowSize].height, 423)
+      expectation.fulfill()
+    }
+
+    wait(for: [expectation], timeout: 2)
+  }
+
+  func testProgrammaticResizeKeepsTopEdgeStable() {
+    let expectation = expectation(description: "stable resize anchor")
+
+    Task { @MainActor in
+      Defaults[.windowSize] = NSSize(width: 435, height: 423)
+      let panel = FloatingPanel(
+        contentRect: NSRect(origin: .zero, size: Defaults[.windowSize]),
+        identifier: "floating-panel-stable-resize-test",
+        onClose: {}
+      ) {
+        EmptyView()
+      }
+      panel.setFrame(NSRect(origin: NSPoint(x: 100, y: 200), size: Defaults[.windowSize]), display: false)
+      let originalMaxY = panel.frame.maxY
+      let originalContentWidth = panel.contentRect(forFrameRect: panel.frame).width
+
+      panel.verticallyResize(to: 151)
+
+      XCTAssertEqual(panel.contentRect(forFrameRect: panel.frame).size, NSSize(width: originalContentWidth, height: 151))
+      XCTAssertEqual(panel.frame.maxY, originalMaxY)
+
+      panel.verticallyResize(to: 300)
+
+      XCTAssertEqual(panel.contentRect(forFrameRect: panel.frame).size, NSSize(width: originalContentWidth, height: 300))
+      XCTAssertEqual(panel.frame.maxY, originalMaxY)
       expectation.fulfill()
     }
 

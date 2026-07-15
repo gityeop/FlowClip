@@ -112,8 +112,11 @@ class Clipboard {
   }
 
   // Based on https://github.com/Clipy/Clipy/blob/develop/Clipy/Sources/Services/PasteService.swift.
+  @MainActor
   func paste() {
-    Accessibility.check()
+    guard Accessibility.shared.checkAndPresentIfNeeded() else {
+      return
+    }
 
     // Add flag that left/right modifier key has been pressed.
     // See https://github.com/TermiT/Flycut/pull/18 for details.

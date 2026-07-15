@@ -4,6 +4,7 @@ import KeyboardShortcuts
 import LaunchAtLogin
 import Settings
 
+@MainActor
 struct GeneralSettingsPane: View {
   private let notificationsURL = URL(
     string: "x-apple.systempreferences:com.apple.preference.notifications?id=\(Bundle.main.bundleIdentifier ?? "")"
@@ -24,9 +25,20 @@ struct GeneralSettingsPane: View {
   @State private var selectedPresetMode: QueueSeparator = .custom
   @State private var isSyncingPresetEditor = false
   @State private var updater = SoftwareUpdater()
+  @State private var accessibility = Accessibility.shared
 
   var body: some View {
     Settings.Container(contentWidth: 520) {
+      Settings.Section(
+        bottomDivider: true,
+        label: { Text("AccessibilityPermission") }
+      ) {
+        HStack(spacing: 12) {
+          AccessibilityStatusView(accessibility: accessibility)
+          Button("OpenSystemSettings", action: accessibility.openSystemSettings)
+        }
+      }
+
       Settings.Section(title: "", bottomDivider: true) {
         LaunchAtLogin.Toggle {
           Text("LaunchAtLogin", tableName: "GeneralSettings")
@@ -232,6 +244,9 @@ struct GeneralSettingsPane: View {
       }
     }
     .onAppear(perform: preparePresetEditor)
+    .task {
+      await accessibility.monitor()
+    }
   }
 
   private func refreshModifiers(_ sender: Sendable) {
