@@ -6,6 +6,30 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.23</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li><strong>Fixes:</strong>
+    <ul>
+      <li>Fixed Raycast Beta Pick Color results in hexadecimal format not being saved to FlowClip history.</li>
+      <li>Kept unrelated auto-generated, transient, and concealed clipboard data excluded from history.</li>
+    </ul>
+  </li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Wed, 19 Aug 2026 12:12:43 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.23</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.23/FlowClip.zip"
+        sparkle:version="24"
+        sparkle:shortVersionString="1.0.23"
+        length="7128156"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.22</title>
       <description>
         <![CDATA[
