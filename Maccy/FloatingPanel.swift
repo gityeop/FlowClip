@@ -184,6 +184,12 @@ class FloatingPanel<Content: View>: NSPanel, NSWindowDelegate {
   }
 
   override func sendEvent(_ event: NSEvent) {
+    // An IME can enqueue deletion and replacement without a SwiftUI render in between.
+    // Apply deletion to the same native editor that will receive the replacement.
+    if case .deleteOneCharFromSearch = KeyChord(event), let editor = firstResponder as? NSTextView {
+      editor.deleteBackward(nil)
+      return
+    }
     switch event.type {
     case .leftMouseDown, .rightMouseDown, .otherMouseDown:
       // Ensure the first click is delivered to controls even when the panel is not key.

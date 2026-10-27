@@ -14,15 +14,15 @@ APP_BINARY="$APP_BUNDLE/Contents/MacOS/$APP_NAME"
 export DEVELOPER_DIR="/Applications/Xcode-beta.app/Contents/Developer"
 
 case "$MODE" in
-  run|--debug|debug|--logs|logs|--telemetry|telemetry|--verify|verify)
+  run|--debug|debug|--logs|logs|--telemetry|telemetry|--verify|verify|--build-only)
     ;;
   *)
-    echo "usage: $0 [run|--debug|--logs|--telemetry|--verify]" >&2
+    echo "usage: $0 [run|--debug|--logs|--telemetry|--verify|--build-only]" >&2
     exit 2
     ;;
 esac
 
-if /usr/bin/pgrep -x "$APP_NAME" >/dev/null; then
+if [[ "$MODE" != --build-only ]] && /usr/bin/pgrep -x "$APP_NAME" >/dev/null; then
   /usr/bin/pkill -x "$APP_NAME"
 fi
 
@@ -36,7 +36,12 @@ xcodebuild -quiet \
   DEVELOPMENT_TEAM="$TEAM_ID" \
   build
 
-/usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
+python3 "$ROOT_DIR/scripts/verify_app_sandbox.py" "$APP_BUNDLE"
+
+if [[ "$MODE" == --build-only ]]; then
+  echo "Built: $APP_BUNDLE"
+  exit 0
+fi
 
 open_app() {
   /usr/bin/open -n "$APP_BUNDLE"

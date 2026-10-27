@@ -6,6 +6,25 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.24</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li>Fixed duplicated and leftover characters when an input method rewrites text in the search field.</li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Tue, 27 Oct 2026 15:04:19 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.24</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.24/FlowClip.zip"
+        sparkle:version="25"
+        sparkle:shortVersionString="1.0.24"
+        length="7128643"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.23</title>
       <description>
         <![CDATA[

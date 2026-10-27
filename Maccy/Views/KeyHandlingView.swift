@@ -62,6 +62,11 @@ struct KeyHandlingView<Content: View>: View {
           }
           return .handled
         case .deleteOneCharFromSearch:
+          // Keep an IME's delete + insert batch in the focused text editor.
+          // Updating the binding here can leave its field editor one render behind.
+          if searchFocused {
+            return .ignored
+          }
           searchFocused = true
           _ = searchQuery.popLast()
           return .handled

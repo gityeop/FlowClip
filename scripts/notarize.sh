@@ -32,6 +32,8 @@ xcodebuild -exportArchive \
   -exportOptionsPlist export_options.plist \
   -exportPath "$EXPORT_PATH"
 
+python3 scripts/verify_app_sandbox.py "$APP_PATH"
+
 echo "🤐 Zipping for Notarization..."
 /usr/bin/ditto -c -k --keepParent "$APP_PATH" "$ZIP_PATH"
 
