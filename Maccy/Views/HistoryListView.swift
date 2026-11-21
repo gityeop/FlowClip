@@ -11,6 +11,9 @@ struct HistoryListView: View {
   @State private var activePinnedDropIndex: Int?
   @State private var pinnedItemHeights: [UUID: CGFloat] = [:]
   @State private var unpinnedItemHeights: [UUID: CGFloat] = [:]
+  @State private var pinnedContentHeight: CGFloat = 0
+
+  private static let maxPinnedHeightFraction: CGFloat = 0.5
 
   @Environment(AppState.self) private var appState
   @Environment(ModifierFlags.self) private var modifierFlags
@@ -42,69 +45,19 @@ struct HistoryListView: View {
   }
 
   var body: some View {
-    VStack(spacing: 0) {
-      if pinTo == .top {
-        pinnedSection(showSeparatorAfterItems: true)
-      }
-
-      ScrollView {
-        ScrollViewReader { proxy in
-          LazyVStack(spacing: 0) {
-            ForEach(unpinnedItems) { item in
-              unpinnedItemView(item)
-            }
+    GeometryReader { container in
+      ScrollViewReader { proxy in
+        VStack(spacing: 0) {
+          if pinTo == .top {
+            pinnedSection(showSeparatorAfterItems: true, availableHeight: container.size.height)
           }
-          .task(id: appState.scrollTarget) {
-            guard appState.scrollTarget != nil else { return }
 
-            try? await Task.sleep(for: .milliseconds(10))
-            guard !Task.isCancelled else { return }
+          historyScrollView(proxy: proxy)
 
-            if let selection = appState.scrollTarget {
-              proxy.scrollTo(selection)
-              appState.scrollTarget = nil
-            }
-          }
-          .onChange(of: scenePhase) {
-            if scenePhase == .active {
-              searchFocused = true
-              HistoryItemDecorator.previewThrottler.minimumDelay = Double(previewDelay) / 1000
-              HistoryItemDecorator.previewThrottler.cancel()
-              appState.isKeyboardNavigating = true
-              appState.selection = appState.history.unpinnedItems.first?.id ?? appState.history.pinnedItems.first?.id
-            } else {
-              modifierFlags.flags = []
-              appState.isKeyboardNavigating = true
-              clearPinnedDragState()
-            }
-          }
-          // Calculate the total height inside a scroll view.
-          .background {
-            GeometryReader { geo in
-              Color.clear
-                .task(id: appState.popup.needsResize) {
-                  guard appState.popup.needsResize else { return }
-
-                  do {
-                    try await Task.sleep(for: .milliseconds(10))
-                  } catch is CancellationError {
-                    return
-                  } catch {
-                    fatalError("Failed while waiting to resize the popup: \(error)")
-                  }
-
-                  guard !Task.isCancelled, appState.popup.needsResize else { return }
-                  appState.popup.resize(height: max(geo.size.height, estimatedUnpinnedItemsHeight))
-                }
-            }
+          if pinTo == .bottom {
+            pinnedSection(showSeparatorAfterItems: false, availableHeight: container.size.height)
           }
         }
-        .contentMargins(.leading, 10, for: .scrollIndicators)
-      }
-      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-
-      if pinTo == .bottom {
-        pinnedSection(showSeparatorAfterItems: false)
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -132,6 +85,62 @@ struct HistoryListView: View {
     }
   }
 
+  private func historyScrollView(proxy: ScrollViewProxy) -> some View {
+    ScrollView {
+      LazyVStack(spacing: 0) {
+        ForEach(unpinnedItems) { item in
+          unpinnedItemView(item)
+        }
+      }
+      .task(id: appState.scrollTarget) {
+        guard appState.scrollTarget != nil else { return }
+
+        try? await Task.sleep(for: .milliseconds(10))
+        guard !Task.isCancelled else { return }
+
+        if let selection = appState.scrollTarget {
+          proxy.scrollTo(selection)
+          appState.scrollTarget = nil
+        }
+      }
+      .onChange(of: scenePhase) {
+        if scenePhase == .active {
+          searchFocused = true
+          HistoryItemDecorator.previewThrottler.minimumDelay = Double(previewDelay) / 1000
+          HistoryItemDecorator.previewThrottler.cancel()
+          appState.isKeyboardNavigating = true
+          appState.selection = appState.history.unpinnedItems.first?.id ?? appState.history.pinnedItems.first?.id
+        } else {
+          modifierFlags.flags = []
+          appState.isKeyboardNavigating = true
+          clearPinnedDragState()
+        }
+      }
+      // Calculate the total height inside a scroll view.
+      .background {
+        GeometryReader { geo in
+          Color.clear
+            .task(id: appState.popup.needsResize) {
+              guard appState.popup.needsResize else { return }
+
+              do {
+                try await Task.sleep(for: .milliseconds(10))
+              } catch is CancellationError {
+                return
+              } catch {
+                fatalError("Failed while waiting to resize the popup: \(error)")
+              }
+
+              guard !Task.isCancelled, appState.popup.needsResize else { return }
+              appState.popup.resize(height: max(geo.size.height, estimatedUnpinnedItemsHeight))
+            }
+        }
+      }
+    }
+    .contentMargins(.leading, 10, for: .scrollIndicators)
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+  }
+
   @ViewBuilder
   private func unpinnedItemView(_ item: HistoryItemDecorator) -> some View {
     HistoryItemView(item: item)
@@ -149,24 +158,42 @@ struct HistoryListView: View {
   }
 
   @ViewBuilder
-  private func pinnedSection(showSeparatorAfterItems: Bool) -> some View {
-    LazyVStack(spacing: 0) {
+  private func pinnedSection(showSeparatorAfterItems: Bool, availableHeight: CGFloat) -> some View {
+    // Pins live outside the history scroll view so they stay put, but they get their own
+    // scroll view capped to a share of the popup. Otherwise many pins push the history out.
+    let maxHeight = unpinnedItems.isEmpty
+      ? availableHeight
+      : availableHeight * Self.maxPinnedHeightFraction
+
+    VStack(spacing: 0) {
       if !showSeparatorAfterItems, showPinsSeparator {
         pinsSeparator
       }
 
-      ForEach(Array(pinnedItems.enumerated()), id: \.element.id) { index, item in
-        pinnedItemView(item, pinnedIndex: index)
+      ScrollView {
+        pinnedItemsStack
       }
+      .scrollBounceBehavior(.basedOnSize)
+      .contentMargins(.leading, 10, for: .scrollIndicators)
+      .frame(height: max(0, min(pinnedContentHeight, maxHeight)))
 
       if showSeparatorAfterItems, showPinsSeparator {
         pinsSeparator
+      }
+    }
+  }
+
+  private var pinnedItemsStack: some View {
+    VStack(spacing: 0) {
+      ForEach(Array(pinnedItems.enumerated()), id: \.element.id) { index, item in
+        pinnedItemView(item, pinnedIndex: index)
       }
     }
     .background {
       GeometryReader { geo in
         Color.clear
           .task(id: geo.size.height) {
+            pinnedContentHeight = geo.size.height
             appState.popup.pinnedItemsHeight = geo.size.height
           }
       }
