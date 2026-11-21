@@ -6,6 +6,25 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>1.0.25</title>
+      <description>
+        <![CDATA[
+<ul>
+  <li>Fixed the history list disappearing when many items are pinned. Pinned items now scroll in their own area, capped at half the popup, so every pin stays reachable and the history stays visible below.</li>
+</ul>
+        ]]>
+      </description>
+      <pubDate>Sun, 22 Nov 2026 03:04:59 +0900</pubDate>
+      <releaseNotesLink>https://github.com/gityeop/FlowClip/releases/tag/v1.0.25</releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/gityeop/FlowClip/releases/download/v1.0.25/FlowClip.zip"
+        sparkle:version="26"
+        sparkle:shortVersionString="1.0.25"
+        length="7135100"
+        type="application/octet-stream" />
+    </item>
+    <item>
       <title>1.0.24</title>
       <description>
         <![CDATA[
